@@ -58,8 +58,15 @@ Inductive tree234 : Type :=
   | node4' : nat -> nat -> nat -> tree234 -> tree234 -> tree234 -> tree234 -> tree234
 .
 
+Fixpoint translateTo234 (t:tree23) : tree234 :=
+  match t with
+  | empty => empty'
+  | node2 k t1 t2 => node2' k (translateTo234 t1) (translateTo234 t2)
+  | node3 k1 k2 t1 t2 t3 => node3' k1 k2 (translateTo234 t1) (translateTo234 t2) (translateTo234 t3)
+end.
 
-Fixpoint insert23treeStep1 (k:nat) (t:tree23) : tree234 :=
+(* this does it, except root *)
+Fixpoint insert23tree (k:nat) (t:tree23) : tree234 :=
   match t with
 
   | empty => node2' k empty' empty'
@@ -82,34 +89,40 @@ Fixpoint insert23treeStep1 (k:nat) (t:tree23) : tree234 :=
 
   | node2 k1 t1 t2 =>
     match Nat.leb k k1 with
-    | true => insert23treeStep1 k t1
-    | false => insert23treeStep1 k t2
+    | true =>
+      match insert23tree k t1 with
+      | node4' n1 n2 n3 w1 w2 w3 w4 => node3' n2 k1 (node2' n1 w1 w2) (node2' n3 w3 w4) (translateTo234 t2)
+      | t' => node2' k1 t' (translateTo234 t2)
+      end
+    | false =>
+      match insert23tree k t2 with
+      | node4' n1 n2 n3 w1 w2 w3 w4 => node3' k1 n2 (translateTo234 t1) (node2' n1 w1 w2) (node2' n3 w3 w4)
+      | t' => node2' k1 (translateTo234 t1) t'
+      end
     end
 
   | node3 k1 k2 t1 t2 t3 =>
     match Nat.leb k k2 with
       | true => 
         match Nat.leb k k1 with
-        | true => insert23treeStep1 k t1
-        | false => insert23treeStep1 k t2
+        | true =>
+          match insert23tree k t1 with
+          | node4' n1 n2 n3 w1 w2 w3 w4 => node4' n2 k1 k2 (node2' n1 w1 w2) (node2' n3 w3 w4) (translateTo234 t2) (translateTo234 t3)
+          | t' => node3' k1 k2 t' (translateTo234 t2) (translateTo234 t3)
+          end
+        | false =>
+          match insert23tree k t2 with
+          | node4' n1 n2 n3 w1 w2 w3 w4 => node4' k1 n2 k2 (translateTo234 t1) (node2' n1 w1 w2) (node2' n3 w3 w4) (translateTo234 t3)
+          | t' => node3' k1 k2 (translateTo234 t1) t' (translateTo234 t3)
+          end
         end
-      | false => insert23treeStep1 k t3
+      | false =>
+        match insert23tree k t3 with
+        | node4' n1 n2 n3 w1 w2 w3 w4 => node4' k1 k2 n2 (translateTo234 t1) (translateTo234 t2) (node2' n1 w1 w2) (node2' n3 w3 w4)
+        | t' => node3' k1 k2 (translateTo234 t1) (translateTo234 t2) t'
+        end
     end
   end.
-
-
-Fixpoint insert23treeStep2 (t:tree234) : tree23 :=
-  match t with
-  | empty' => empty
-  
-  (* for the root *)
-  | node4' k1 k2 k3 t1 t2 t3 t4 => node2 k2 (node2 k1 (insert23treeStep2 t1) (insert23treeStep2 t2)) (node2 k3 (insert23treeStep2 t3) (insert23treeStep2 t4))
-
-  | node3' k1 k2 t1 t2 t3 => node3 k1 k2 (insert23treeStep2 t1) (insert23treeStep2 t2) (insert23treeStep2 t3)
-  
-  | node2' k t1 t2 => node2 k (insert23treeStep2 t1) (insert23treeStep2 t2)
-  end.
-
 
 
 Inductive keyIn : nat -> tree23 -> Prop :=
