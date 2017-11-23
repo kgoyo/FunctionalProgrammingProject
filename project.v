@@ -50,26 +50,82 @@ Proof. reflexivity. Qed.
 Example searchtest9: search23tree 5 (node3 2 4 empty empty empty) = false.
 Proof. reflexivity. Qed.
 
-inductive
 
-Fixpoint insert23tree (k:nat) (t:tree23) : tree23 :=
-  | empty => node2 k empty empty
+Inductive tree234 : Type :=
+  | empty' : tree234
+  | node2' : nat -> tree234 -> tree234 -> tree234
+  | node3' : nat -> nat -> tree234 -> tree234 -> tree234 -> tree234
+  | node4' : nat -> nat -> nat -> tree234 -> tree234 -> tree234 -> tree234 -> tree234
+.
+
+
+Fixpoint insert23treeStep1 (k:nat) (t:tree23) : tree234 :=
+  match t with
+
+  | empty => node2' k empty' empty'
+
   | node2 k1 empty empty =>
     match Nat.leb k k1 with
-    | true => node3 k k1 empty empty empty
-    | false => node3 k1 k empty empty empty
-    end
-  | node2 k1 t1 t2 =>
-    match Nat.leb k k1 with
-    | true => 
-      match (insert23tree k t1) with
-    | false => 
+    | true => node3' k k1 empty' empty' empty'
+    | false => node3' k1 k empty' empty' empty'
     end
 
-(*
-vi kunne lave en ny type illegal tree som har en node4, som derefter skal blive legalized
-vi kan så match når noget returnerer en node4 og så splitte den op
-*)
+  | node3 k1 k2 empty empty empty =>
+    match Nat.leb k k2 with
+      | true => 
+        match Nat.leb k k1 with
+        | true => node4' k k1 k2 empty' empty' empty' empty'
+        | false => node4' k1 k k2 empty' empty' empty' empty'
+        end
+      | false => node4' k1 k2 k empty' empty' empty' empty'
+    end
+
+  | node2 k1 t1 t2 =>
+    match Nat.leb k k1 with
+    | true => insert23treeStep1 k t1
+    | false => insert23treeStep1 k t2
+    end
+
+  | node3 k1 k2 t1 t2 t3 =>
+    match Nat.leb k k2 with
+      | true => 
+        match Nat.leb k k1 with
+        | true => insert23treeStep1 k t1
+        | false => insert23treeStep1 k t2
+        end
+      | false => insert23treeStep1 k t3
+    end
+  end.
+
+
+Fixpoint insert23treeStep2 (t:tree234) : tree23 :=
+  match t with
+  | empty' => empty
+  
+  (* for the root *)
+  | node4' k1 k2 k3 t1 t2 t3 t4 => node2 k2 (node2 k1 (insert23treeStep2 t1) (insert23treeStep2 t2)) (node2 k3 (insert23treeStep2 t3) (insert23treeStep2 t4))
+
+  | node3' k1 k2 t1 t2 t3 => node3 k1 k2 (insert23treeStep2 t1) (insert23treeStep2 t2) (insert23treeStep2 t3)
+  
+  | node2' k t1 t2 => node2 k (insert23treeStep2 t1) (insert23treeStep2 t2)
+  end.
+
+
+
+Inductive keyIn : nat -> tree23 -> Prop :=
+  | In2a : forall k t1 t2, keyIn k (node2 k t1 t2)
+  | In2b : forall k n t1 t2, keyIn k t1 -> keyIn k (node2 n t1 t2)
+  | In2c : forall k n t1 t2, keyIn k t2 -> keyIn k (node2 n t1 t2)
+
+  | In3a : forall k k2 t1 t2 t3, keyIn k (node3 k k2 t1 t2 t3)
+  | In3b : forall k k1 t1 t2 t3, keyIn k (node3 k1 k t1 t2 t3)
+  | In3c : forall k k1 k2 t1 t2 t3, keyIn k t1 -> keyIn k (node3 k1 k2 t1 t2 t3)
+  | In3d : forall k k1 k2 t1 t2 t3, keyIn k t2 -> keyIn k (node3 k1 k2 t1 t2 t3)
+  | In3e : forall k k1 k2 t1 t2 t3, keyIn k t3 -> keyIn k (node3 k1 k2 t1 t2 t3).
+
+
+
+
 
 
 
