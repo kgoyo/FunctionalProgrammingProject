@@ -23,6 +23,8 @@ Fixpoint search23tree (sk:nat) (n:tree23) : bool :=
     end
   end.
 
+(*Test cases for search *)
+
 Example searchtest1: search23tree 2 empty = false.
 Proof. reflexivity. Qed.
 
@@ -135,9 +137,87 @@ Fixpoint insert23subtree (k:nat) (t:tree23) : tree234 :=
 Definition insert23tree (k:nat) (t:tree23) : tree23 :=
   translateTo23 (insert23subtree k t).
 
+(* Test cases for search *)
+
+(* leaf cases *)
 
 
-(* TODO make exhaustive test cases for insert *)
+
+Example insertTest1: insert23tree 2 empty = node2 2 empty empty.
+Proof. reflexivity. Qed.
+
+Example insertTest2: insert23tree 2 (node2 1 empty empty) =
+                                     node3 1 2 empty empty empty.
+Proof. reflexivity. Qed.
+
+Example insertTest3: insert23tree 2 (node2 3 empty empty) =
+                                     node3 2 3 empty empty empty.
+Proof. reflexivity. Qed.
+
+Example insertTest4: insert23tree 3 (node3 2 4 empty empty empty) =
+                                     node2 3 (node2 2 empty empty) (node2 4 empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest5: insert23tree 1 (node3 2 4 empty empty empty) =
+                                     node2 2 (node2 1 empty empty) (node2 4 empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest6: insert23tree 5 (node3 2 4 empty empty empty) =
+                                     node2 4 (node2 2 empty empty) (node2 5 empty empty).
+Proof. reflexivity. Qed.
+
+(* node cases *)
+
+(* node2 *)
+
+Example insertTest7: insert23tree 4 (node2 5 (node2 3 empty empty) (node2 7 empty empty)) =
+                                     node2 5 (node3 3 4 empty empty empty) (node2 7 empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest8: insert23tree 6 (node2 5 (node2 3 empty empty) (node2 7 empty empty)) =
+                                     node2 5 (node2 3 empty empty) (node3 6 7 empty empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest9: insert23tree 4 (node2 5 (node3 2 3 empty empty empty) (node2 7 empty empty)) =
+                                     node3 3 5 (node2 2 empty empty) (node2 4 empty empty) (node2 7 empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest10: insert23tree 6 (node2 5 (node2 3 empty empty) (node3 7 8 empty empty empty)) =
+                                      node3 5 7 (node2 3 empty empty) (node2 6 empty empty) (node2 8 empty empty).
+Proof. reflexivity. Qed.
+
+(* node3 *)
+
+Example insertTest11: insert23tree 2 (node3 4 8 (node2 3 empty empty) (node2 5 empty empty) (node2 9 empty empty)) =
+                                      node3 4 8 (node3 2 3 empty empty empty) (node2 5 empty empty) (node2 9 empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest12: insert23tree 6 (node3 4 8 (node2 3 empty empty) (node2 5 empty empty) (node2 9 empty empty)) =
+                                      node3 4 8 (node2 3 empty empty) (node3 5 6 empty empty empty) (node2 9 empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest13: insert23tree 10 (node3 4 8 (node2 3 empty empty) (node2 5 empty empty) (node2 9 empty empty)) =
+                                       node3 4 8 (node2 3 empty empty) (node2 5 empty empty) (node3 9 10 empty empty empty).
+Proof. reflexivity. Qed.
+
+Example insertTest14: insert23tree 2 (node3 4 8 (node3 1 3 empty empty empty) (node2 5 empty empty) (node2 9 empty empty)) =
+                                      node2 4 (node2 2 (node2 1 empty empty) (node2 3 empty empty)) (node2 8 (node2 5 empty empty) (node2 9 empty empty)).
+Proof. reflexivity. Qed.
+
+Example insertTest15: insert23tree 6 (node3 4 8 (node2 3 empty empty) (node3 5 7 empty empty empty) (node2 9 empty empty)) =
+                                      node2 6 (node2 4 (node2 3 empty empty) (node2 5 empty empty)) (node2 8 (node2 7 empty empty) (node2 9 empty empty)).
+Proof. reflexivity. Qed.
+
+Example insertTest16: insert23tree 10 (node3 4 8 (node2 3 empty empty) (node2 5 empty empty) (node3 9 11 empty empty empty)) =
+                                       node2 8 (node2 4 (node2 3 empty empty) (node2 5 empty empty)) (node2 10 (node2 9 empty empty) (node2 11 empty empty)).
+Proof. reflexivity. Qed.
+
+
+
+
+
+
+
 
 
 
