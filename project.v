@@ -233,15 +233,73 @@ Inductive keyIn : nat -> tree23 -> Prop :=
   | In3e : forall k k1 k2 t1 t2 t3, keyIn k t3 -> keyIn k (node3 k1 k2 t1 t2 t3).
 
 
+Inductive Balanced': nat -> tree23 -> Prop :=
+  | b_base : Balanced' 0 empty
+  | b_tree2 : forall k n t1 t2, Balanced' n t1 -> Balanced' n t2 -> Balanced' (S n) (node2 k t1 t2)
+  | b_tree3 : forall k1 k2 n t1 t2 t3, Balanced' n t1 -> Balanced' n t2 -> Balanced' n t3 -> Balanced' (S n) (node3 k1 k2 t1 t2 t3).
+
+
+Inductive Balanced : tree23 -> Prop :=
+  | bal : forall t, (exists n, Balanced' n t) -> Balanced t.
+
+Inductive k_inBounds : nat -> option nat -> option nat -> Prop :=
+  | kb_doubleNone :  forall n, k_inBounds n None None
+  | kb_leftNone : forall n upper, n <= upper -> k_inBounds n None (Some upper)
+  | kb_rightNone : forall n lower, lower <= n -> k_inBounds n (Some lower) None
+  | kb_noNone : forall n lower upper, lower <= n -> n <= upper -> k_inBounds n (Some lower) (Some upper).
+
+Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
+  | srch_empty : forall o1 o2, SearchTree' o1 o2 empty
+  | srch_node2 : forall k t1 t2 lower upper,
+        SearchTree' lower (Some k) t1 ->
+        SearchTree' (Some k) upper t2 ->
+        k_inBounds k lower upper ->
+        SearchTree' lower upper (node2 k t1 t2)
+  | srch_node3 : forall k1 k2 t1 t2 t3 lower upper,
+        SearchTree' lower (Some k1) t1 ->
+        SearchTree' (Some k1) (Some k2) t2 ->
+        SearchTree' (Some k2) upper t3 ->
+        k1 <= k2 ->
+        k_inBounds k1 lower upper ->
+        k_inBounds k2 lower upper ->
+        SearchTree' lower upper (node3 k1 k2 t1 t2 t3).
+
+Inductive SearchTree : tree23 -> Prop :=
+  | srch : forall t, SearchTree' None None t -> SearchTree t.
 
 
 
 
 
+Theorem SearchCorrectness :
+  forall t k, SearchTree t -> (keyIn k t <-> search23tree k t = true).
+Proof.
+Admitted.
 
+Theorem PreserveSearchTreeInvariant :
+  forall t k, SearchTree t -> SearchTree (insert23tree k t).
+Proof.
+Admitted.
 
+Theorem PreserveBalancedInvariant :
+  forall t k, Balanced t -> Balanced (insert23tree k t).
+Proof.
+Admitted.
 
+Theorem InsertCorrectness1 :
+  forall t k, keyIn k (insert23tree k t).
+Proof.
+Admitted.
 
+Theorem insertCorrectness2 :
+  forall t k k', keyIn k' t -> keyIn k' (insert23tree k t).
+Proof.
+Admitted.
+
+Theorem insertCorrectness3 :
+  forall t k k', keyIn k' (insert23tree k t) -> k' = k \/ keyIn k' t.
+Proof.
+Admitted.
 
 
 
