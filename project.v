@@ -268,13 +268,27 @@ Inductive SearchTree : tree23 -> Prop :=
   | srch : forall t, SearchTree' None None t -> SearchTree t.
 
 
-
+Lemma helper1 :
+  forall n t1 t2, SearchTree (node2 n t1 t2) -> SearchTree t1 /\ SearchTree t2.
+Proof.
+intros.
+split.
+- Admitted.
 
 
 Theorem SearchCorrectness :
   forall t k, SearchTree t -> (keyIn k t <-> search23tree k t = true).
 Proof.
-Admitted.
+intros.
+split.
+- intros.
+  induction t.
+  + inversion H0.
+  + simpl.
+    destruct (Nat.compare k n).
+    * reflexivity.
+    * apply IHt1.
+      -- 
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
