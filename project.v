@@ -333,6 +333,72 @@ Proof.
 Qed.
 
 
+Lemma help2 : forall n1 n2 u t, SearchTree' (Some n2) u t -> n1 <= n2 -> SearchTree' (Some n1) u t.
+Proof.
+  intros.
+  generalize dependent n1.
+  remember (Some n2) as l.
+  generalize dependent n2.
+  induction H; intros; subst.
+  - apply srch_empty.
+  - apply srch_node2.
+    + apply IHSearchTree'1 with n2; auto.
+    + apply H0.
+    + Admitted.
+  
+  (*
+  
+  induction t; intros.
+  - apply srch_empty.
+  - apply srch_node2.
+    + apply IHt1.
+  inversion H; subst.
+  - apply srch_empty.
+  - apply srch_node2.
+    + 
+  inversion H0; subst.
+  - apply H.
+  - 
+*)
+Lemma help :
+  forall n k upper t, keyIn k t -> SearchTree' (Some n) upper t -> n<=k.
+Proof.
+  intros.
+  generalize dependent upper.
+  revert n.
+  induction H; intros.
+  - inversion H0; subst.
+    inversion H7; auto.
+  - inversion H0; subst.
+    apply IHkeyIn with (Some n).
+    assumption.
+  
+  
+  induction t.
+  - intros. inversion H.
+  - intros. 
+    inversion H0; subst.
+    inversion H; subst.
+    + inversion H8; subst; assumption.
+    + apply IHt1 with (upper:= (Some n0)).
+      * apply H3.
+      * apply H6.
+    + apply IHt2 with (upper:= upper).
+      * apply H3.
+      * inversion H8; subst.
+        -- clear -H7 H4.
+          remember (Some n0).
+          remember None.
+          revert n0 Heqo Heqo0 H4.
+          induction H7; intros; subst.
+          ++ apply srch_empty.
+          ++ apply srch_node2.
+             ** apply IHSearchTree'1 with n0.
+             ** apply H7_0.
+             ** 
+Admitted.
+
+
 Theorem SearchCorrectness :
   forall t k, SearchTree t -> (keyIn k t <-> search23tree k t = true).
 Proof.
@@ -355,7 +421,16 @@ split.
          inversion H0; subst.
          ++ apply n_lt_n in H1; inversion H1.
          ++ apply H5.
-         ++ 
+         ++ apply help with (n:= n) (upper:= upper) in H5.
+            ** apply le_lt_or_eq in H5.
+               destruct H5.
+               --- Check lt_trans.
+                  pose proof (lt_trans _ _ _ H1 H3).
+               
+               rewrite H1 in H3.
+               
+               apply lt_trans with  in H3.
+
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
