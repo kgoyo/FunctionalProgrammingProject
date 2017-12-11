@@ -1,3 +1,5 @@
+Require Import Arith.
+
 Inductive tree23 : Type :=
   | empty : tree23
   | node2 : nat -> tree23 -> tree23 -> tree23
@@ -265,15 +267,70 @@ Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
         SearchTree' lower upper (node3 k1 k2 t1 t2 t3).
 
 Inductive SearchTree : tree23 -> Prop :=
-  | srch : forall t, SearchTree' None None t -> SearchTree t.
+  | srch : forall t lower upper, SearchTree' lower upper t -> SearchTree t.
 
 
-Lemma helper1 :
+Lemma Search_node2_conj :
   forall n t1 t2, SearchTree (node2 n t1 t2) -> SearchTree t1 /\ SearchTree t2.
 Proof.
 intros.
+inversion H; subst.
+inversion H0; subst.
 split.
-- Admitted.
+- apply srch with (lower:=lower) (upper:= (Some n)).
+  apply H6.
+- apply srch with (lower:= (Some n)) (upper:= upper).
+  apply H7.
+Qed.
+
+Lemma Search_node3_conj :
+  forall n1 n2 t1 t2 t3, SearchTree (node3 n1 n2 t1 t2 t3) -> SearchTree t1 /\ SearchTree t2 /\ SearchTree t3.
+Proof.
+intros.
+inversion H; subst.
+inversion H0; subst.
+split.
+- apply srch with (lower:=lower) (upper:= (Some n1)).
+  apply H6.
+- split.
+  + apply srch with (lower:= (Some n1)) (upper:= (Some n2)).
+    apply H9.
+  + apply srch with (lower:= (Some n2)) (upper:= upper).
+    apply H10.
+Qed.
+
+Lemma n_lt_n : forall n, n<n -> False.
+Proof.
+  intros.
+  inversion H; subst.
+  - clear H.
+    induction n.
+    + inversion H0.
+    + apply IHn.
+      inversion H0.
+      apply H0.
+  - clear H.
+    induction m.
+    + inversion H0.
+    + apply IHm.
+      apply le_S_n in H0.
+      apply H0.
+Qed.
+
+
+Lemma helper :
+  forall k n t1 t2, keyIn k (node2 n t1 t2) /\ k <> n -> keyIn k t1 \/ keyIn k t2.
+Proof.
+  intros.
+  destruct H.
+  inversion H; subst.
+  - apply not_eq in H0.
+    destruct H0; apply n_lt_n in H0; inversion H0.
+  - left.
+    apply H3.
+  - right.
+    apply H3.
+Qed.
 
 
 Theorem SearchCorrectness :
@@ -285,10 +342,20 @@ split.
   induction t.
   + inversion H0.
   + simpl.
-    destruct (Nat.compare k n).
+    destruct (Nat.compare k n) eqn:H1.
     * reflexivity.
     * apply IHt1.
-      -- 
+      -- apply Search_node2_conj in H.
+         destruct H.
+         apply H.
+      -- apply nat_compare_Lt_lt in H1.
+         inversion H; subst.
+         inversion H2; subst.
+         
+         inversion H0; subst.
+         ++ apply n_lt_n in H1; inversion H1.
+         ++ apply H5.
+         ++ 
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
