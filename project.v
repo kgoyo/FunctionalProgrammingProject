@@ -215,25 +215,16 @@ Example insertTest16: insert23tree 10 (node3 4 8 (node2 3 empty empty) (node2 5 
 Proof. reflexivity. Qed.
 
 
-
-
-
-
-
-
-
-
 Inductive keyIn : nat -> tree23 -> Prop :=
-  | In2a : forall k t1 t2, keyIn k (node2 k t1 t2)
-  | In2b : forall k n t1 t2, keyIn k t1 -> keyIn k (node2 n t1 t2)
-  | In2c : forall k n t1 t2, keyIn k t2 -> keyIn k (node2 n t1 t2)
+  | In2_match : forall k t1 t2, keyIn k (node2 k t1 t2)
+  | In2_left : forall k n t1 t2, keyIn k t1 -> keyIn k (node2 n t1 t2)
+  | In2_right : forall k n t1 t2, keyIn k t2 -> keyIn k (node2 n t1 t2)
 
-  | In3a : forall k k2 t1 t2 t3, keyIn k (node3 k k2 t1 t2 t3)
-  | In3b : forall k k1 t1 t2 t3, keyIn k (node3 k1 k t1 t2 t3)
-  | In3c : forall k k1 k2 t1 t2 t3, keyIn k t1 -> keyIn k (node3 k1 k2 t1 t2 t3)
-  | In3d : forall k k1 k2 t1 t2 t3, keyIn k t2 -> keyIn k (node3 k1 k2 t1 t2 t3)
-  | In3e : forall k k1 k2 t1 t2 t3, keyIn k t3 -> keyIn k (node3 k1 k2 t1 t2 t3).
-
+  | In3_match1 : forall k k2 t1 t2 t3, keyIn k (node3 k k2 t1 t2 t3)
+  | In3_match2 : forall k k1 t1 t2 t3, keyIn k (node3 k1 k t1 t2 t3)
+  | In3_left : forall k k1 k2 t1 t2 t3, keyIn k t1 -> keyIn k (node3 k1 k2 t1 t2 t3)
+  | In3_middle : forall k k1 k2 t1 t2 t3, keyIn k t2 -> keyIn k (node3 k1 k2 t1 t2 t3)
+  | In3_right : forall k k1 k2 t1 t2 t3, keyIn k t3 -> keyIn k (node3 k1 k2 t1 t2 t3).
 
 Inductive Balanced': nat -> tree23 -> Prop :=
   | b_base : Balanced' 0 empty
@@ -658,8 +649,59 @@ split.
                --- apply H12.
             ** apply H6.
 - intros.
-  (*TODO*)
-  Admitted.
+  induction t.
+  + inversion H0.
+  + inversion H; inversion H1; subst; clear H H1.
+    simpl in H0.
+    destruct (k ?= n) eqn: H1.
+    * apply nat_compare_eq in H1.
+      rewrite H1.
+      apply In2_match.
+    * apply In2_left.
+      apply IHt1.
+      -- apply srch with lower (Some n).
+         apply H8.
+      -- apply H0.
+    * apply In2_right.
+      apply IHt2.
+      -- apply srch with (Some n) upper.
+         apply H9.
+      -- apply H0.
+  + inversion H; inversion H1; subst; clear H H1.
+    simpl in H0.
+    destruct (k ?= n) eqn: H1.
+    * apply nat_compare_eq in H1.
+      rewrite H1.
+      apply In3_match1.
+    * destruct (k ?= n0) eqn: H2.
+      -- apply nat_compare_eq in H2.
+         rewrite H2.
+         apply In3_match2.
+      -- apply In3_left.
+         apply IHt1.
+         ++ apply srch with lower (Some n).
+            apply H8.
+         ++ apply H0.
+      -- apply In3_left.
+         apply IHt1.
+         ++ apply srch with lower (Some n).
+            apply H8.
+         ++ apply H0.
+    * destruct (k ?= n0) eqn: H2.
+      -- apply nat_compare_eq in H2.
+         rewrite H2.
+         apply In3_match2.
+      -- apply In3_middle.
+         apply IHt2.
+         ++ apply srch with (Some n) (Some n0).
+            apply H11.
+         ++ apply H0.
+      -- apply In3_right.
+         apply IHt3.
+         ++ apply srch with (Some n0) (upper).
+            apply H12.
+         ++ apply H0.
+Qed.
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
