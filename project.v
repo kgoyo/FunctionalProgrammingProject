@@ -389,17 +389,98 @@ Proof.
         -- apply H6.
 Qed.
 
+Lemma loosen_upper_bound : forall n1 n2 l t, SearchTree' l (Some n2) t -> n2 <= n1 -> SearchTree' l (Some n1) t.
+Proof.
+  intros.
+  generalize dependent n1.
+  remember (Some n2) as u.
+  generalize dependent n2.
+  induction H; intros; subst.
+  - apply srch_empty.
+  - apply srch_node2.
+    + apply IHSearchTree'1 with k; reflexivity.
+    + apply IHSearchTree'2 with n2.
+      * reflexivity.
+      * apply H2.
+    + unfold k_inBounds in *.
+      destruct lower; destruct H1.
+      * split.
+        -- apply H1.
+        -- rewrite H2 in H3.
+           apply H3.
+      * split.
+        -- apply H1.
+        -- rewrite H2 in H3.
+           apply H3.
+  - apply srch_node3.
+    + apply IHSearchTree'1 with k1; reflexivity.
+    + apply IHSearchTree'2 with k2; reflexivity.
+    + apply IHSearchTree'3 with n2.
+      * reflexivity.
+      * apply H5.
+    + apply H2.
+    + unfold k_inBounds in *.
+      destruct lower; destruct H4; destruct H3.
+      * split.
+        -- apply H3.
+        -- rewrite H5 in H7.
+           apply H7.
+      * split.
+        -- apply H3.
+        -- rewrite H5 in H7.
+           apply H7.
+    + unfold k_inBounds in *.
+      destruct lower; destruct H4; destruct H3.
+      * split.
+        -- apply H4.
+        -- rewrite H5 in H6.
+           apply H6.
+      * split.
+        -- apply H4.
+        -- rewrite H5 in H6.
+           apply H6.
+Qed.
+
 (* this lemma states if k is in the tree upper bounded by n, then k<=n *)
 Lemma leftTreeSearch_aux :
   forall n k lower t, keyIn k t -> SearchTree' lower (Some n) t -> k<=n.
 Proof.
-Admitted. (*TODO*)
-
-Lemma middleTreeSearch_aux :
-  forall n1 n2 k t, keyIn k t -> SearchTree' (Some n1) (Some n2) t -> n1<=k /\ k<=n2.
-Proof.
-Admitted.
-
+  intros.
+  generalize dependent lower.
+  generalize dependent n.
+  induction H; intros; inversion H0; subst.
+  - unfold k_inBounds in *.
+    destruct H7.
+    apply H1.
+  - apply IHkeyIn with lower.
+    unfold k_inBounds in *.
+    apply loosen_upper_bound with n.
+    + apply H6.
+    + destruct H8.
+      apply H2.
+  - apply IHkeyIn with (Some n).
+    apply H7.
+  - unfold k_inBounds in *.
+    destruct H11.
+    apply H1.
+  - unfold k_inBounds in *.
+    destruct H12.
+    apply H1.
+  - apply IHkeyIn with lower.
+    apply loosen_upper_bound with k1.
+    + apply H6.
+    + unfold k_inBounds in *.
+      destruct H12.
+      apply H2.
+  - apply IHkeyIn with (Some k1).
+    apply loosen_upper_bound with k2.
+    + apply H9.
+    + unfold k_inBounds in *.
+      destruct H13.
+      apply H2.
+  - apply IHkeyIn with (Some k2).
+    apply H10.
+Qed.
 
 (* this lemma states if k is in the tree lower bounded by n then n<=k *)
 Lemma rightTreeSearch_aux :
@@ -409,7 +490,8 @@ Proof.
   generalize dependent upper.
   revert n.
   induction H; intros; inversion H0; subst.
-    inversion H7; auto.
+  - inversion H7.
+    apply H.
   - apply IHkeyIn with (Some n).
     apply H6.
   - unfold k_inBounds in *.
@@ -438,6 +520,16 @@ Proof.
     + unfold k_inBounds in *.
       destruct H13.
       apply H1.
+Qed.
+
+(* this lemma states if k is in the tree lower bounded by n1 and upper bounded by n2 then n1<=k<=n2 *)
+Lemma middleTreeSearch_aux :
+  forall n1 n2 k t, keyIn k t -> SearchTree' (Some n1) (Some n2) t -> n1<=k /\ k<=n2.
+Proof.
+  intros.
+  split.
+  - apply rightTreeSearch_aux with (t:=t) (upper:= (Some n2)); assumption.
+  - apply leftTreeSearch_aux with (t:=t) (lower:= (Some n1)); assumption.
 Qed.
 
 Theorem SearchCorrectness :
@@ -566,6 +658,8 @@ split.
                --- apply H12.
             ** apply H6.
 - intros.
+  (*TODO*)
+  Admitted.
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
