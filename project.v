@@ -244,11 +244,23 @@ Inductive Balanced': nat -> tree23 -> Prop :=
 Inductive Balanced : tree23 -> Prop :=
   | bal : forall t, (exists n, Balanced' n t) -> Balanced t.
 
+Definition k_inBounds (k:nat) (l: option nat) (u: option nat) : Prop :=
+  (match l with
+   | Some l' => l' <= k
+   | None => True
+   end)
+   /\
+   (match u with
+    | Some u' => k <= u'
+    | None => True
+    end).
+(*
 Inductive k_inBounds : nat -> option nat -> option nat -> Prop :=
   | kb_doubleNone :  forall n, k_inBounds n None None
   | kb_leftNone : forall n upper, n <= upper -> k_inBounds n None (Some upper)
   | kb_rightNone : forall n lower, lower <= n -> k_inBounds n (Some lower) None
   | kb_noNone : forall n lower upper, lower <= n -> n <= upper -> k_inBounds n (Some lower) (Some upper).
+  *)
 
 Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
   | srch_empty : forall o1 o2, SearchTree' o1 o2 empty
@@ -268,6 +280,11 @@ Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
 
 Inductive SearchTree : tree23 -> Prop :=
   | srch : forall t lower upper, SearchTree' lower upper t -> SearchTree t.
+
+
+
+(* proofs *)
+
 
 
 Lemma Search_node2_conj :
@@ -318,22 +335,7 @@ Proof.
 Qed.
 
 
-Lemma helper :
-  forall k n t1 t2, keyIn k (node2 n t1 t2) /\ k <> n -> keyIn k t1 \/ keyIn k t2.
-Proof.
-  intros.
-  destruct H.
-  inversion H; subst.
-  - apply not_eq in H0.
-    destruct H0; apply n_lt_n in H0; inversion H0.
-  - left.
-    apply H3.
-  - right.
-    apply H3.
-Qed.
-
-
-Lemma help2 : forall n1 n2 u t, SearchTree' (Some n2) u t -> n1 <= n2 -> SearchTree' (Some n1) u t.
+Lemma loosen_lower_bound : forall n1 n2 u t, SearchTree' (Some n2) u t -> n1 <= n2 -> SearchTree' (Some n1) u t.
 Proof.
   intros.
   generalize dependent n1.
@@ -344,59 +346,93 @@ Proof.
   - apply srch_node2.
     + apply IHSearchTree'1 with n2; auto.
     + apply H0.
-    + Admitted.
-  
-  (*
-  
-  induction t; intros.
-  - apply srch_empty.
-  - apply srch_node2.
-    + apply IHt1.
-  inversion H; subst.
-  - apply srch_empty.
-  - apply srch_node2.
-    + 
-  inversion H0; subst.
-  - apply H.
-  - 
-*)
-Lemma help :
+    + unfold k_inBounds in *.
+      destruct upper.
+      * destruct H1.
+        split.
+        -- rewrite H1 in H2.
+           apply H2.
+        -- apply H3.
+      * destruct H1.
+        split.
+        -- rewrite H1 in H2.
+           apply H2.
+        -- apply H3.
+  - apply srch_node3.
+    + apply IHSearchTree'1 with n2; auto.
+    + apply H0.
+    + apply H1.
+    + apply H2.
+    + unfold k_inBounds in *.
+      destruct upper.
+      * destruct H4; destruct H3.
+        split.
+        -- rewrite H3 in H5.
+           apply H5.
+        -- apply H7.
+      * destruct H4; destruct H3.
+        split.
+        -- rewrite H3 in H5.
+           apply H5.
+        -- apply H7.
+    + unfold k_inBounds in *.
+      destruct upper.
+      * destruct H4; destruct H3.
+        split.
+        -- rewrite H4 in H5.
+           apply H5.
+        -- apply H6.
+      * destruct H4; destruct H3.
+        split.
+        -- rewrite H4 in H5.
+           apply H5.
+        -- apply H6.
+Qed.
+
+(* this lemma states if k is in the tree upper bounded by n, then k<=n *)
+Lemma leftTreeSearch_aux :
+  forall n k lower t, keyIn k t -> SearchTree' lower (Some n) t -> k<=n.
+Proof.
+Admitted. (*TODO*)
+
+(* this lemma states if k is in the tree lower bounded by n then n<=k *)
+Lemma rightTreeSearch_aux :
   forall n k upper t, keyIn k t -> SearchTree' (Some n) upper t -> n<=k.
 Proof.
   intros.
   generalize dependent upper.
   revert n.
-  induction H; intros.
-  - inversion H0; subst.
+  induction H; intros; inversion H0; subst.
     inversion H7; auto.
-  - inversion H0; subst.
-    apply IHkeyIn with (Some n).
-    assumption.
-  
-  
-  induction t.
-  - intros. inversion H.
-  - intros. 
-    inversion H0; subst.
-    inversion H; subst.
-    + inversion H8; subst; assumption.
-    + apply IHt1 with (upper:= (Some n0)).
-      * apply H3.
-      * apply H6.
-    + apply IHt2 with (upper:= upper).
-      * apply H3.
-      * inversion H8; subst.
-        -- clear -H7 H4.
-          remember (Some n0).
-          remember None.
-          revert n0 Heqo Heqo0 H4.
-          induction H7; intros; subst.
-          ++ apply srch_empty.
-          ++ apply srch_node2.
-             ** apply IHSearchTree'1 with n0.
-             ** apply H7_0.
-             ** 
-Admitted.
+  - apply IHkeyIn with (Some n).
+    apply H6.
+  - unfold k_inBounds in *.
+    destruct H8.
+    apply IHkeyIn with upper.
+    apply loosen_lower_bound with n.
+    + apply H7.
+    + apply H1.
+  - unfold k_inBounds in *.
+    destruct H11.
+    apply H.
+  - unfold k_inBounds in *.
+    destruct H12.
+    apply H.
+  - apply IHkeyIn with (Some k1).
+    apply H6.
+  - apply IHkeyIn with (Some k2).
+    apply loosen_lower_bound with k1.
+    + apply H9.
+    + unfold k_inBounds in *.
+      destruct H12.
+      apply H1.
+  - apply IHkeyIn with upper.
+    apply loosen_lower_bound with k2.
+    + apply H10.
+    + unfold k_inBounds in *.
+      destruct H13.
+      apply H1.
+Qed.
 
 
 Theorem SearchCorrectness :
@@ -408,7 +444,7 @@ split.
   induction t.
   + inversion H0.
   + simpl.
-    destruct (Nat.compare k n) eqn:H1.
+    destruct (k ?= n) eqn:H1.
     * reflexivity.
     * apply IHt1.
       -- apply Search_node2_conj in H.
@@ -417,19 +453,33 @@ split.
       -- apply nat_compare_Lt_lt in H1.
          inversion H; subst.
          inversion H2; subst.
-         
          inversion H0; subst.
          ++ apply n_lt_n in H1; inversion H1.
          ++ apply H5.
-         ++ apply help with (n:= n) (upper:= upper) in H5.
+         ++ apply rightTreeSearch_aux with (n:= n) (upper:= upper) in H5.
             ** apply le_lt_or_eq in H5.
-               destruct H5.
-               --- Check lt_trans.
-                  pose proof (lt_trans _ _ _ H1 H3).
-               
-               rewrite H1 in H3.
-               
-               apply lt_trans with  in H3.
+               destruct H5; rewrite H3 in H1; apply n_lt_n in H1; inversion H1.
+            ** apply H9.
+    * apply IHt2.
+      -- apply Search_node2_conj in H.
+         destruct H.
+         apply H2.
+      -- apply nat_compare_Gt_gt in H1; unfold gt in H1.
+         inversion H; subst.
+         inversion H2; subst.
+         inversion H0; subst.
+         ++ apply n_lt_n in H1; inversion H1.
+         ++ apply leftTreeSearch_aux with (n:= n) (lower:= lower) in H5.
+            ** apply le_lt_or_eq in H5.
+               destruct H5; rewrite H3 in H1; apply n_lt_n in H1; inversion H1.
+            ** apply H8.
+         ++ apply H5.
+  + simpl.
+    destruct (k ?= n) eqn: H1.
+    * reflexivity.
+    * destruct (k ?= n0) eqn: H2.
+      -- reflexivity.
+      -- (* TODO *)
 
 
 Theorem PreserveSearchTreeInvariant :
