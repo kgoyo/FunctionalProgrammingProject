@@ -395,6 +395,12 @@ Lemma leftTreeSearch_aux :
 Proof.
 Admitted. (*TODO*)
 
+Lemma middleTreeSearch_aux :
+  forall n1 n2 k t, keyIn k t -> SearchTree' (Some n1) (Some n2) t -> n1<=k /\ k<=n2.
+Proof.
+Admitted.
+
+
 (* this lemma states if k is in the tree lower bounded by n then n<=k *)
 Lemma rightTreeSearch_aux :
   forall n k upper t, keyIn k t -> SearchTree' (Some n) upper t -> n<=k.
@@ -433,7 +439,6 @@ Proof.
       destruct H13.
       apply H1.
 Qed.
-
 
 Theorem SearchCorrectness :
   forall t k, SearchTree t -> (keyIn k t <-> search23tree k t = true).
@@ -475,12 +480,92 @@ split.
             ** apply H8.
          ++ apply H5.
   + simpl.
-    destruct (k ?= n) eqn: H1.
+    destruct (k ?= n) eqn: H4.
     * reflexivity.
-    * destruct (k ?= n0) eqn: H2.
+    * destruct (k ?= n0) eqn: H5.
       -- reflexivity.
-      -- (* TODO *)
-
+      -- apply IHt1.
+         ++ apply Search_node3_conj in H.
+            destruct H as [H1 [H2 H3]].
+            apply H1.
+         ++ apply nat_compare_Lt_lt in H4.
+            apply nat_compare_Lt_lt in H5.
+            inversion H; inversion H1; inversion H0; subst.
+            ** apply n_lt_n in H4; inversion H4.
+            ** apply n_lt_n in H5; inversion H5.
+            ** apply H20.
+            ** apply middleTreeSearch_aux with (n1:=n) (n2:= n0) in H20.
+               --- destruct H20.
+                   apply le_lt_or_eq in H2.
+                   destruct H2; rewrite H2 in H4; apply n_lt_n in H4; inversion H4.
+               --- apply H13.
+            ** apply rightTreeSearch_aux with (n:=n0) (upper:=upper) in H20.
+               --- apply le_lt_or_eq in H20.
+                   destruct H20; rewrite H2 in H5; apply n_lt_n in H5; inversion H5.
+               --- apply H14.
+      -- apply IHt1.
+         ++ apply Search_node3_conj in H.
+            destruct H as [H1 [H2 H3]].
+            apply H1.
+         ++ apply nat_compare_Lt_lt in H4.
+            apply nat_compare_Gt_gt in H5; unfold gt in H5.
+            inversion H; inversion H1; inversion H0; subst.
+            ** apply n_lt_n in H4; inversion H4.
+            ** apply n_lt_n in H5; inversion H5.
+            ** apply H20.
+            ** apply middleTreeSearch_aux with (n1:=n) (n2:= n0) in H20.
+               --- destruct H20.
+                   apply le_lt_or_eq in H2.
+                   destruct H2; rewrite H2 in H4; apply n_lt_n in H4; inversion H4.
+               --- apply H13.
+            ** apply rightTreeSearch_aux with (n:= n0) (upper:= upper) in H20.
+               --- apply le_lt_or_eq in H20;
+                   destruct H20;
+                     apply le_lt_or_eq in H15;
+                     destruct H15;
+                       rewrite H3 in H4;
+                       rewrite H5 in H4;
+                       apply n_lt_n in H4; inversion H4.
+               --- apply H14.
+    * destruct (k ?= n0) eqn: H5.
+      -- reflexivity.
+      -- apply IHt2.
+         ++ apply Search_node3_conj in H.
+            destruct H as [H1 [H2 H3]].
+            apply H2.
+         ++ apply nat_compare_Lt_lt in H5.
+            apply nat_compare_Gt_gt in H4; unfold gt in H4.
+            inversion H; subst; inversion H1; subst; inversion H0; subst.
+            ** apply n_lt_n in H4; inversion H4.
+            ** apply n_lt_n in H5; inversion H5.
+            ** apply leftTreeSearch_aux with (n:= n) (lower:= lower) in H6.
+               --- apply le_lt_or_eq in H6.
+                   destruct H6; rewrite H2 in H4; apply n_lt_n in H4; inversion H4.
+               --- apply H9.
+            ** apply H6.
+            ** apply rightTreeSearch_aux with (n:=n0) (upper:= upper) in H6.
+               --- apply le_lt_or_eq in H6.
+                   destruct H6; rewrite H2 in H5; apply n_lt_n in H5; inversion H5.
+               --- apply H13.
+      -- apply IHt3.
+         ++ apply Search_node3_conj in H.
+            destruct H as [H1 [H2 H3]].
+            apply H3.
+         ++ apply nat_compare_Gt_gt in H4; unfold gt in H4.
+            apply nat_compare_Gt_gt in H5; unfold gt in H5.
+            inversion H; subst; inversion H1; subst; inversion H0; subst.
+            ** apply n_lt_n in H4; inversion H4.
+            ** apply n_lt_n in H5; inversion H5.
+            ** apply leftTreeSearch_aux with (n:=n) (lower:=lower) in H6.
+               --- apply le_lt_or_eq in H6.
+                   destruct H6; rewrite H2 in H4; apply n_lt_n in H4; inversion H4.
+               --- apply H9.
+            ** apply middleTreeSearch_aux with (n1:= n) (n2:= n0) in H6.
+               --- destruct H6.
+                   apply le_lt_or_eq in H3; destruct H3; rewrite H3 in H5; apply n_lt_n in H5; inversion H5.
+               --- apply H12.
+            ** apply H6.
+- intros.
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
