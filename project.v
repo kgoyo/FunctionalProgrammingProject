@@ -349,6 +349,19 @@ Inductive SearchTree : tree23 -> Prop :=
   | srch : forall t lower upper, SearchTree' lower upper t -> SearchTree t.
 
 
+(* new min and max that handle None as no bound *)
+
+Definition min' (a:nat) (b:option nat) : option nat :=
+  match b with
+  | None => None
+  | Some b' => Some (min a b')
+  end.
+
+Definition max' (a:nat) (b:option nat) : option nat :=
+  match b with
+  | None => None
+  | Some b' => Some (max a b')
+  end.
 
 (* proofs *)
 
@@ -779,32 +792,39 @@ split.
          ++ apply H0.
 Qed.
 
-(*
-Lemma PreserveSearchNode2 : forall k n t1 t2 lower upper,
-  SearchTree' lower (Some k) (insert23tree k t1) ->
-  SearchTree' (Some k) upper (insert23tree k t2) ->
-  k_inBounds n lower upper ->
-  SearchTree' lower upper (insert23tree k (node2 n t1 t2)).
-intros.
-Admitted.
+Opaque min max.
+Hint Resolve Nat.le_min_r Nat.le_min_l.
+Hint Resolve Nat.le_max_r Nat.le_max_l.
+Hint Resolve Nat.max_lub Nat.min_glb.
 
-Lemma PreserveSearchNode3 : forall k n1 n2 t1 t2 t3 lower upper,
-  SearchTree' lower (Some n1) (insert23tree k t1) ->
-  SearchTree' (Some n1) (Some n2) (insert23tree k t2) ->
-  SearchTree' (Some n2) upper (insert23tree k t3) ->
-  n1 <= n2 ->
-  k_inBounds n1 lower upper ->
-  k_inBounds n2 lower upper ->
-  SearchTree' lower upper (insert23tree k (node3 n1 n2 t1 t2 t3)).
+Lemma PreserveSearchInsertHelper : forall lower upper k t,
+  SearchTree' lower upper t ->
+  match insertHelper k t with
+  | irTree t' =>       SearchTree' (min' k lower) (max' k upper) t'
+  | irSplit t1 s t2 => SearchTree' (min' k lower) (Some s) t1
+                    /\ SearchTree' (Some s) (max' k upper) t2
+  end.
+Proof.
 intros.
-Admitted.
-*)
+induction H; intros.
+- simpl.
+  apply srch_node2.
+  + apply srch_empty.
+  + apply srch_empty.
+  + unfold min'; unfold max'.
+    destruct o1; destruct o2; unfold k_inBounds; split; auto.
+- destruct (insertHelper k (node2 k0 t1 t2)).
+  + induction t.
+    * apply srch_empty.
+    * apply srch_node2.
+      -- Admitted.
+
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
 Proof.
   intros.
-  inversion H; subst.
+  inversion H; subst; clear H.
   induction H0.
   - unfold insert23tree; unfold insertHelper.
     apply srch with None None.
@@ -812,60 +832,114 @@ Proof.
     + apply srch_empty.
     + apply srch_empty.
     + unfold k_inBounds; auto.
-  - apply Search_node2_conj in H; destruct H.
+  - apply srch with (min' k lower) (max' k upper).
+    apply PreserveSearchInsertHelper with (k:=k) in H0_.
+    apply PreserveSearchInsertHelper with (k:=k) in H0_0.
+    unfold insert23tree.
+    destruct (insertHelper k t1).
+    Admitted.
+    
+  
+  
+  
+  
+  (*
+  
+    apply Search_node2_conj in H; destruct H.
     apply IHSearchTree'1 in H; clear IHSearchTree'1.
     apply IHSearchTree'2 in H1; clear IHSearchTree'2.
     inversion H; subst.
     inversion H1; subst.
     apply srch with lower0 upper1.
     Admitted. (* REDO PROOF *)
-    
-
-(*
-  induction t.
-  - unfold insert23tree; unfold insertHelper.
-    apply srch with None None.
-    apply srch_node2; try apply srch_empty.
-    unfold k_inBounds; auto.
-  - apply Search_node2_conj in H.
-    destruct H.
-    apply IHt1 in H; clear IHt1.
-    apply IHt2 in H0; clear IHt2.
-    inversion H; subst.
-    inversion H0; subst.
-    apply srch with None None.
-    apply PreserveSearchNode2.
-    + inversion H; subst.
-    
-    + apply IHt1 in H.
-    inversion H; subst.
-    apply H.
-  + apply IHt2.
-    apply H0.
-  - apply Search_node3_conj in H.
-    destruct H as [H1 [H2 H3]].
-    apply PreserveSearchNode3; auto. (* same approach as node2 *)
-Qed.
 *)
+
+Lemma PreserveBalanceInsertHelper : forall n k t,
+  Balanced' n t ->
+  match insertHelper k t with
+  | irTree t' =>       Balanced' n t'
+  | irSplit t1 s t2 => Balanced' n t1
+                    /\ Balanced' n t2
+  end.
+Proof.
+  intros.
+  induction H; intros.
+  
+  (* dont know what to do in the first case *)
+  
+  Focus 2.
+    Admitted.
+    
+    
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
 Proof.
+  intros.
+  inversion H; subst.
+  remember n.
+  generalize dependent n.
+  induction H0; intros.
+  - inversion H; subst.
+    apply PreserveBalanceInsertHelper with (k:=k) in H0.
+    simpl in *.
+    apply bal with (n:=n0).
+    unfold insert23tree; unfold insertHelper.
+    apply H0.
+  - (* induction again? *)
+  
+Admitted.
+
+Lemma keyIn_insert : forall t k, match insertHelper k t with
+  | irTree t' => keyIn k t'
+  | irSplit t1 m t2 => match (k ?= m) with
+    | Lt => keyIn k t1
+    | Eq => k=m
+    | Gt => keyIn k t2
+    end
+  end.
+Proof.
+  intros.
+  induction t.
+  - simpl.
+    apply In2_match.
+  - 
 Admitted.
 
 Theorem InsertCorrectness1 :
   forall t k, keyIn k (insert23tree k t).
 Proof.
+  intros.
+  induction t; unfold insert23tree.
+  - simpl.
+    apply In2_match.
+  - 
+    (*apply keyIn_insert in IHt1.
+      why cant I do this *)
 Admitted.
 
 Theorem insertCorrectness2 :
   forall t k k', keyIn k' t -> keyIn k' (insert23tree k t).
 Proof.
+  intros.
+  induction H.
+  - unfold insert23tree.
+    
 Admitted.
 
 Theorem insertCorrectness3 :
   forall t k k', keyIn k' (insert23tree k t) -> k' = k \/ keyIn k' t.
 Proof.
+  intros.
+  induction t; intros.
+  - unfold insert23tree in H.
+    simpl in *.
+    inversion H; subst.
+    + left; reflexivity.
+    + inversion H2.
+    + right; apply H2.
+  - unfold insert23tree in H.
+    (* stuck again *)
 Admitted.
 
 
