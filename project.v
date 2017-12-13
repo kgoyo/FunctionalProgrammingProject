@@ -288,8 +288,6 @@ Example insertTest14: insert23tree 2 (node3 4 8 (node3 1 3 empty empty empty) (n
                                       node2 4 (node2 2 (node2 1 empty empty) (node2 3 empty empty)) (node2 8 (node2 5 empty empty) (node2 9 empty empty)).
 Proof. reflexivity. Qed.
 
-Compute insert23tree 6 (node3 4 8 (node2 3 empty empty) (node3 5 7 empty empty empty) (node2 9 empty empty)).
-
 Example insertTest15: insert23tree 6 (node3 4 8 (node2 3 empty empty) (node3 5 7 empty empty empty) (node2 9 empty empty)) =
                                       node2 6 (node2 4 (node2 3 empty empty) (node2 5 empty empty)) (node2 8 (node2 7 empty empty) (node2 9 empty empty)).
 Proof. reflexivity. Qed.
@@ -317,7 +315,7 @@ Inductive Balanced': nat -> tree23 -> Prop :=
 
 
 Inductive Balanced : tree23 -> Prop :=
-  | bal : forall t, (exists n, Balanced' n t) -> Balanced t.
+  | bal : forall t n, Balanced' n t -> Balanced t.
 
 Definition k_inBounds (k:nat) (l: option nat) (u: option nat) : Prop :=
   (match l with
@@ -781,17 +779,74 @@ split.
          ++ apply H0.
 Qed.
 
+(*
+Lemma PreserveSearchNode2 : forall k n t1 t2 lower upper,
+  SearchTree' lower (Some k) (insert23tree k t1) ->
+  SearchTree' (Some k) upper (insert23tree k t2) ->
+  k_inBounds n lower upper ->
+  SearchTree' lower upper (insert23tree k (node2 n t1 t2)).
+intros.
+Admitted.
+
+Lemma PreserveSearchNode3 : forall k n1 n2 t1 t2 t3 lower upper,
+  SearchTree' lower (Some n1) (insert23tree k t1) ->
+  SearchTree' (Some n1) (Some n2) (insert23tree k t2) ->
+  SearchTree' (Some n2) upper (insert23tree k t3) ->
+  n1 <= n2 ->
+  k_inBounds n1 lower upper ->
+  k_inBounds n2 lower upper ->
+  SearchTree' lower upper (insert23tree k (node3 n1 n2 t1 t2 t3)).
+intros.
+Admitted.
+*)
+
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
 Proof.
   intros.
+  inversion H; subst.
+  induction H0.
+  - unfold insert23tree; unfold insertHelper.
+    apply srch with None None.
+    apply srch_node2.
+    + apply srch_empty.
+    + apply srch_empty.
+    + unfold k_inBounds; auto.
+  - apply Search_node2_conj in H; destruct H.
+    apply IHSearchTree'1 in H; clear IHSearchTree'1.
+    apply IHSearchTree'2 in H1; clear IHSearchTree'2.
+    inversion H; subst.
+    inversion H1; subst.
+    apply srch with lower0 upper1.
+    Admitted. (* REDO PROOF *)
+    
+
+(*
   induction t.
   - unfold insert23tree; unfold insertHelper.
     apply srch with None None.
     apply srch_node2; try apply srch_empty.
     unfold k_inBounds; auto.
-  - unfold insert23tree; unfold insertHelper.
-
+  - apply Search_node2_conj in H.
+    destruct H.
+    apply IHt1 in H; clear IHt1.
+    apply IHt2 in H0; clear IHt2.
+    inversion H; subst.
+    inversion H0; subst.
+    apply srch with None None.
+    apply PreserveSearchNode2.
+    + inversion H; subst.
+    
+    + apply IHt1 in H.
+    inversion H; subst.
+    apply H.
+  + apply IHt2.
+    apply H0.
+  - apply Search_node3_conj in H.
+    destruct H as [H1 [H2 H3]].
+    apply PreserveSearchNode3; auto. (* same approach as node2 *)
+Qed.
+*)
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
@@ -812,13 +867,5 @@ Theorem insertCorrectness3 :
   forall t k k', keyIn k' (insert23tree k t) -> k' = k \/ keyIn k' t.
 Proof.
 Admitted.
-
-
-
-
-
-
-
-
 
 
