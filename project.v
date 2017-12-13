@@ -55,6 +55,86 @@ Example searchtest9: search23tree 5 (node3 2 4 empty empty empty) = false.
 Proof. reflexivity. Qed.
 
 
+
+
+(* new search *)
+Inductive insertResult : Set :=
+  | irTree : tree23 -> insertResult
+  | irSplit : tree23 -> nat -> tree23 -> insertResult.
+
+
+Fixpoint insertHelper (k:nat) (t:tree23) : insertResult :=
+
+  match t with
+
+  (* base cases *)
+
+  | empty => irTree (node2 k empty empty)
+
+  | node2 n empty empty =>
+    match Nat.leb k n with
+    | true  => irTree (node3 k n empty empty empty)
+    | false => irTree (node3 n k empty empty empty)
+    end
+
+  | node3 n1 n2 empty empty empty =>
+    match Nat.leb k n2 with
+      | true  =>
+        match Nat.leb k n1 with
+        | true  => irSplit (node2 k empty empty) n1 (node2 n2 empty empty) (* k is smallest *)
+        | false => irSplit (node2 n1 empty empty) k (node2 n2 empty empty) (* k is middle *)
+        end
+      |   false => irSplit (node2 n1 empty empty) n2 (node2 k empty empty)   (* k is largest *)
+    end
+
+  (* recursive cases *)
+
+  | node2 n t1 t2 =>
+    match Nat.leb k n with
+    | true  =>
+      match (insertHelper k t1) with
+      | irTree t1' =>      irTree (node2 n t1' t2)
+      | irSplit w1 m w2 => irTree (node3 m n w1 w2 t2)
+      end
+    | false =>
+      match (insertHelper k t2) with
+      | irTree t2' =>      irTree (node2 n t1 t2')
+      | irSplit w1 m w2 => irTree (node3 n m t1 w1 w2)
+      end
+    end
+
+  | node3 n1 n2 t1 t2 t3 =>
+    match Nat.leb k n2 with
+    | true  =>
+      match Nat.leb k n1 with
+      | true  => (* k is smallest *)
+        match (insertHelper k t1) with
+        | irTree t1' =>      irTree (node3 n1 n2 t1' t2 t3)
+        | irSplit w1 m w2 => irSplit (node2 m w1 w2) n1 (node2 n2 t2 t3)
+        end
+      | false =>  (* k is middle *)
+        match (insertHelper k t2) with
+        | irTree t2' =>      irTree (node3 n1 n2 t1 t2' t3)
+        | irSplit w1 m w2 => irSplit (node2 n1 t1 w1) m (node2 n2 w2 t3)
+        end
+      end
+    | false => (* k is largest *)
+        match (insertHelper k t3) with
+        | irTree t3' =>      irTree (node3 n1 n2 t1 t2 t3')
+        | irSplit w1 m w2 => irSplit (node2 n1 t1 t2) n2 (node2 m w1 w2)
+        end
+    end
+  end.
+
+Definition insert23tree (k:nat) (t:tree23) : tree23 :=
+  match (insertHelper k t) with
+  | irTree t' => t'
+  | irSplit w1 m w2 => (node2 m w1 w2)
+  end.
+
+
+(*
+
 Inductive tree234 : Type :=
   | empty' : tree234
   | node2' : nat -> tree234 -> tree234 -> tree234
@@ -138,6 +218,8 @@ Fixpoint insert23subtree (k:nat) (t:tree23) : tree234 :=
 
 Definition insert23tree (k:nat) (t:tree23) : tree23 :=
   translateTo23 (insert23subtree k t).
+*)
+
 
 (* Test cases for search *)
 
@@ -206,6 +288,8 @@ Example insertTest14: insert23tree 2 (node3 4 8 (node3 1 3 empty empty empty) (n
                                       node2 4 (node2 2 (node2 1 empty empty) (node2 3 empty empty)) (node2 8 (node2 5 empty empty) (node2 9 empty empty)).
 Proof. reflexivity. Qed.
 
+Compute insert23tree 6 (node3 4 8 (node2 3 empty empty) (node3 5 7 empty empty empty) (node2 9 empty empty)).
+
 Example insertTest15: insert23tree 6 (node3 4 8 (node2 3 empty empty) (node3 5 7 empty empty empty) (node2 9 empty empty)) =
                                       node2 6 (node2 4 (node2 3 empty empty) (node2 5 empty empty)) (node2 8 (node2 7 empty empty) (node2 9 empty empty)).
 Proof. reflexivity. Qed.
@@ -241,17 +325,11 @@ Definition k_inBounds (k:nat) (l: option nat) (u: option nat) : Prop :=
    | None => True
    end)
    /\
-   (match u with
-    | Some u' => k <= u'
-    | None => True
-    end).
-(*
-Inductive k_inBounds : nat -> option nat -> option nat -> Prop :=
-  | kb_doubleNone :  forall n, k_inBounds n None None
-  | kb_leftNone : forall n upper, n <= upper -> k_inBounds n None (Some upper)
-  | kb_rightNone : forall n lower, lower <= n -> k_inBounds n (Some lower) None
-  | kb_noNone : forall n lower upper, lower <= n -> n <= upper -> k_inBounds n (Some lower) (Some upper).
-  *)
+  (match u with
+   | Some u' => k <= u'
+   | None => True
+   end).
+
 
 Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
   | srch_empty : forall o1 o2, SearchTree' o1 o2 empty
