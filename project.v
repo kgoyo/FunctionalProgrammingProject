@@ -784,7 +784,14 @@ Qed.
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
 Proof.
-Admitted.
+  intros.
+  induction t.
+  - unfold insert23tree; unfold insertHelper.
+    apply srch with None None.
+    apply srch_node2; try apply srch_empty.
+    unfold k_inBounds; auto.
+  - unfold insert23tree; unfold insertHelper.
+
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
