@@ -713,7 +713,7 @@ Lemma TreeBounds : forall l u t, SearchTree' (Some l) (Some u) t -> l <= u.
 Proof.
   intros.
   destruct t.
-  
+  - 
   Focus 2.
   inversion H; subst.
   unfold k_inBounds in H7; destruct H7.
@@ -841,7 +841,7 @@ Proof.
         -- destruct t2_2.
            ++ destruct (k <=? n0); apply b_tree2; try assumption.
               ** (*stuck*)
-
+Admitted.
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
@@ -894,7 +894,8 @@ Proof.
            ++ destruct t2_2.
               ** destruct (k <=? n0) eqn: H1; constructor.
                  --- apply leb_complete in H1; apply leb_complete_conv in H.
-                    
+                     
+                    (* stuck *)
 Admitted.
 
 Theorem InsertCorrectness1 :
