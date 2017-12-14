@@ -240,9 +240,16 @@ Definition k_inBounds (k:nat) (l: option nat) (u: option nat) : Prop :=
    | None => True
    end).
 
-
+Definition correct_Bounds (l u : option nat) : Prop :=
+  match l with
+  | None => True
+  | Some l' => match u with
+               | None => True
+               | Some u' => l' <= u'
+               end
+  end.
 Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
-  | srch_empty : forall o1 o2, SearchTree' o1 o2 empty
+  | srch_empty : forall o1 o2, correct_Bounds o1 o2 -> SearchTree' o1 o2 empty
   | srch_node2 : forall k t1 t2 lower upper,
         SearchTree' lower (Some k) t1 ->
         SearchTree' (Some k) upper t2 ->
@@ -334,7 +341,9 @@ Proof.
   remember (Some n2) as l.
   generalize dependent n2.
   induction H; intros; subst.
-  - apply srch_empty.
+  - apply srch_empty; destruct o2; unfold correct_Bounds in *; auto.
+    rewrite <- H.
+    apply H0.
   - apply srch_node2.
     + apply IHSearchTree'1 with n2; auto.
     + apply H0.
@@ -388,7 +397,9 @@ Proof.
   remember (Some n2) as u.
   generalize dependent n2.
   induction H; intros; subst.
-  - apply srch_empty.
+  - apply srch_empty; destruct o1; unfold correct_Bounds in *; auto.
+    rewrite <- H0.
+    apply H.
   - apply srch_node2.
     + apply IHSearchTree'1 with k; reflexivity.
     + apply IHSearchTree'2 with n2.
@@ -713,19 +724,18 @@ Lemma TreeBounds : forall l u t, SearchTree' (Some l) (Some u) t -> l <= u.
 Proof.
   intros.
   destruct t.
-  - 
-  Focus 2.
-  inversion H; subst.
-  unfold k_inBounds in H7; destruct H7.
-  rewrite <- H1.
-  apply H0.
-  
-  Focus 2.
-  inversion H; subst.
-  unfold k_inBounds in *; destruct H11; destruct H12.
-  rewrite <- H3.
-  apply H2.
-Admitted. (* stuck in base case *)
+  - inversion H; subst.
+    unfold correct_Bounds in H0.
+    apply H0.
+  - inversion H; subst.
+    unfold k_inBounds in H7; destruct H7.
+    rewrite <- H1.
+    apply H0.
+  - inversion H; subst.
+    unfold k_inBounds in *; destruct H11; destruct H12.
+    rewrite <- H3.
+    apply H2.
+Qed.
 
 Lemma PreserveSearchInsertHelper : forall lower upper k t,
   SearchTree' lower upper t ->
@@ -737,13 +747,21 @@ Lemma PreserveSearchInsertHelper : forall lower upper k t,
 Proof.
 intros.
 induction H; intros.
-- simpl; split; apply srch_empty.
+- simpl; split; apply srch_empty; unfold correct_Bounds in *; unfold min'; unfold max'; try destruct o1; try destruct o2; auto.
 - simpl.
   destruct t1.
   + destruct t2.
     * destruct (k <=? k0) eqn: H2.
       -- apply srch_node3; try apply srch_empty.
-         ++ apply leb_complete.
+         ++ unfold correct_Bounds; destruct lower; unfold min'; auto.
+         ++ apply leb_complete in H2.
+            unfold correct_Bounds; apply H2.
+         ++ apply leb_complete in H2.
+            unfold correct_Bounds; destruct upper; unfold max'; auto.
+            unfold k_inBounds in H1; destruct lower; destruct H1.
+            ** rewrite H3; auto.
+            ** rewrite H3; auto. 
+         ++ apply leb_complete in H2.
             apply H2.
          ++ unfold min'; unfold max'.
             destruct lower; destruct upper; unfold k_inBounds; split; auto.
@@ -764,11 +782,14 @@ induction H; intros.
          apply Nat.lt_le_incl in H2.
          apply srch_node3; try apply srch_empty; auto.
          unfold k_inBounds in H1; destruct H1.
+         ++ unfold correct_Bounds; destruct lower; unfold min'; auto.
+            rewrite <- H1; auto.
+         ++ unfold correct_Bounds; destruct upper; unfold max'; auto.
          ++ unfold min'; unfold max'.
-            destruct lower; destruct upper; unfold k_inBounds; split; auto.
+            destruct lower; destruct upper; unfold k_inBounds in *; destruct H1; split; auto.
             ** rewrite <- H1.
                auto.
-            ** rewrite  H3.
+            ** rewrite H3.
                auto.
             ** rewrite <- H1.
                auto.
@@ -779,17 +800,18 @@ induction H; intros.
     * destruct (k <=? k0) eqn: H2; simpl.
       ++ apply srch_node3.
          -- apply srch_empty.
+            unfold correct_Bounds; destruct lower; unfold min'; auto.
          -- apply srch_empty.
+            apply leb_complete in H2.
+            unfold correct_Bounds.
+            apply H2.
          -- destruct upper.
             ** apply srch_node2; inversion H0; subst; clear H0.
                --- apply H8.
-               --- unfold max'.
+               --- unfold k_inBounds in H10; destruct H10.
                    apply leb_complete in H2.
-                   unfold k_inBounds in H10; destruct H10.
-                   rewrite H0 in H2.
-                   rewrite H3 in H2.
+                   unfold max'.
                    Admitted.
-                   rewrite  H2.
                    (* stuck *)
 
 
