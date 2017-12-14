@@ -69,7 +69,7 @@ Fixpoint insertHelper (k:nat) (t:tree23) : insertResult :=
 
   (* base cases *)
 
-  | empty => irTree (node2 k empty empty)
+  | empty => irSplit empty k empty
 
   | node2 n empty empty =>
     match Nat.leb k n with
@@ -131,94 +131,6 @@ Definition insert23tree (k:nat) (t:tree23) : tree23 :=
   | irTree t' => t'
   | irSplit w1 m w2 => (node2 m w1 w2)
   end.
-
-
-(*
-
-Inductive tree234 : Type :=
-  | empty' : tree234
-  | node2' : nat -> tree234 -> tree234 -> tree234
-  | node3' : nat -> nat -> tree234 -> tree234 -> tree234 -> tree234
-  | node4' : nat -> nat -> nat -> tree234 -> tree234 -> tree234 -> tree234 -> tree234
-.
-
-Fixpoint translateTo234 (t:tree23) : tree234 :=
-  match t with
-  | empty => empty'
-  | node2 k t1 t2 => node2' k (translateTo234 t1) (translateTo234 t2)
-  | node3 k1 k2 t1 t2 t3 => node3' k1 k2 (translateTo234 t1) (translateTo234 t2) (translateTo234 t3)
-end.
-
-
-Fixpoint translateTo23 (t:tree234) : tree23 :=
-  match t with
-  | empty' => empty
-  | node2' k t1 t2 => node2 k (translateTo23 t1) (translateTo23 t2)
-  | node3' k1 k2 t1 t2 t3 => node3 k1 k2 (translateTo23 t1) (translateTo23 t2) (translateTo23 t3)
-  | node4' k1 k2 k3 t1 t2 t3 t4 => node2 k2 (node2 k1 (translateTo23 t1) (translateTo23 t2)) (node2 k3 (translateTo23 t3) (translateTo23 t4))
-  end.
-
-Fixpoint insert23subtree (k:nat) (t:tree23) : tree234 :=
-  match t with
-
-  | empty => node2' k empty' empty'
-
-  | node2 k1 empty empty =>
-    match Nat.leb k k1 with
-    | true => node3' k k1 empty' empty' empty'
-    | false => node3' k1 k empty' empty' empty'
-    end
-
-  | node3 k1 k2 empty empty empty =>
-    match Nat.leb k k2 with
-      | true => 
-        match Nat.leb k k1 with
-        | true => node4' k k1 k2 empty' empty' empty' empty'
-        | false => node4' k1 k k2 empty' empty' empty' empty'
-        end
-      | false => node4' k1 k2 k empty' empty' empty' empty'
-    end
-
-  | node2 k1 t1 t2 =>
-    match Nat.leb k k1 with
-    | true =>
-      match insert23subtree k t1 with
-      | node4' n1 n2 n3 w1 w2 w3 w4 => node3' n2 k1 (node2' n1 w1 w2) (node2' n3 w3 w4) (translateTo234 t2)
-      | t' => node2' k1 t' (translateTo234 t2)
-      end
-    | false =>
-      match insert23subtree k t2 with
-      | node4' n1 n2 n3 w1 w2 w3 w4 => node3' k1 n2 (translateTo234 t1) (node2' n1 w1 w2) (node2' n3 w3 w4)
-      | t' => node2' k1 (translateTo234 t1) t'
-      end
-    end
-
-  | node3 k1 k2 t1 t2 t3 =>
-    match Nat.leb k k2 with
-      | true => 
-        match Nat.leb k k1 with
-        | true =>
-          match insert23subtree k t1 with
-          | node4' n1 n2 n3 w1 w2 w3 w4 => node4' n2 k1 k2 (node2' n1 w1 w2) (node2' n3 w3 w4) (translateTo234 t2) (translateTo234 t3)
-          | t' => node3' k1 k2 t' (translateTo234 t2) (translateTo234 t3)
-          end
-        | false =>
-          match insert23subtree k t2 with
-          | node4' n1 n2 n3 w1 w2 w3 w4 => node4' k1 n2 k2 (translateTo234 t1) (node2' n1 w1 w2) (node2' n3 w3 w4) (translateTo234 t3)
-          | t' => node3' k1 k2 (translateTo234 t1) t' (translateTo234 t3)
-          end
-        end
-      | false =>
-        match insert23subtree k t3 with
-        | node4' n1 n2 n3 w1 w2 w3 w4 => node4' k1 k2 n2 (translateTo234 t1) (translateTo234 t2) (node2' n1 w1 w2) (node2' n3 w3 w4)
-        | t' => node3' k1 k2 (translateTo234 t1) (translateTo234 t2) t'
-        end
-    end
-  end.
-
-Definition insert23tree (k:nat) (t:tree23) : tree23 :=
-  translateTo23 (insert23subtree k t).
-*)
 
 
 (* Test cases for search *)
@@ -309,7 +221,7 @@ Inductive keyIn : nat -> tree23 -> Prop :=
   | In3_right : forall k k1 k2 t1 t2 t3, keyIn k t3 -> keyIn k (node3 k1 k2 t1 t2 t3).
 
 Inductive Balanced': nat -> tree23 -> Prop :=
-  | b_base : Balanced' 0 empty
+  | b_treeEmpty : Balanced' 0 empty
   | b_tree2 : forall k n t1 t2, Balanced' n t1 -> Balanced' n t2 -> Balanced' (S n) (node2 k t1 t2)
   | b_tree3 : forall k1 k2 n t1 t2 t3, Balanced' n t1 -> Balanced' n t2 -> Balanced' n t3 -> Balanced' (S n) (node3 k1 k2 t1 t2 t3).
 
@@ -797,6 +709,24 @@ Hint Resolve Nat.le_min_r Nat.le_min_l.
 Hint Resolve Nat.le_max_r Nat.le_max_l.
 Hint Resolve Nat.max_lub Nat.min_glb.
 
+Lemma TreeBounds : forall l u t, SearchTree' (Some l) (Some u) t -> l <= u.
+Proof.
+  intros.
+  destruct t.
+  
+  Focus 2.
+  inversion H; subst.
+  unfold k_inBounds in H7; destruct H7.
+  rewrite <- H1.
+  apply H0.
+  
+  Focus 2.
+  inversion H; subst.
+  unfold k_inBounds in *; destruct H11; destruct H12.
+  rewrite <- H3.
+  apply H2.
+Admitted. (* stuck in base case *)
+
 Lemma PreserveSearchInsertHelper : forall lower upper k t,
   SearchTree' lower upper t ->
   match insertHelper k t with
@@ -807,17 +737,60 @@ Lemma PreserveSearchInsertHelper : forall lower upper k t,
 Proof.
 intros.
 induction H; intros.
+- simpl; split; apply srch_empty.
 - simpl.
-  apply srch_node2.
-  + apply srch_empty.
-  + apply srch_empty.
-  + unfold min'; unfold max'.
-    destruct o1; destruct o2; unfold k_inBounds; split; auto.
-- destruct (insertHelper k (node2 k0 t1 t2)).
-  + induction t.
-    * apply srch_empty.
-    * apply srch_node2.
-      -- Admitted.
+  destruct t1.
+  + destruct t2.
+    * destruct (k <=? k0) eqn: H2.
+      -- apply srch_node3; try apply srch_empty.
+         ++ apply leb_complete.
+            apply H2.
+         ++ unfold min'; unfold max'.
+            destruct lower; destruct upper; unfold k_inBounds; split; auto.
+         ++ apply leb_complete in H2.
+            unfold min'; unfold max'.
+            destruct lower; destruct upper; unfold k_inBounds; split; auto.
+            ** rewrite <- H2; auto.
+            ** unfold k_inBounds in H1.
+               destruct H1.
+               rewrite H3.
+               auto.
+            ** rewrite <- H2.
+               auto.
+            ** unfold k_inBounds in H1; destruct H1.
+               rewrite H3.
+               auto.
+      -- apply leb_complete_conv in H2.
+         apply Nat.lt_le_incl in H2.
+         apply srch_node3; try apply srch_empty; auto.
+         unfold k_inBounds in H1; destruct H1.
+         ++ unfold min'; unfold max'.
+            destruct lower; destruct upper; unfold k_inBounds; split; auto.
+            ** rewrite <- H1.
+               auto.
+            ** rewrite  H3.
+               auto.
+            ** rewrite <- H1.
+               auto.
+            ** rewrite H3.
+               auto.
+         ++ unfold min'; unfold max'.
+            destruct lower; destruct upper; unfold k_inBounds; split; auto.
+    * destruct (k <=? k0) eqn: H2; simpl.
+      ++ apply srch_node3.
+         -- apply srch_empty.
+         -- apply srch_empty.
+         -- destruct upper.
+            ** apply srch_node2; inversion H0; subst; clear H0.
+               --- apply H8.
+               --- unfold max'.
+                   apply leb_complete in H2.
+                   unfold k_inBounds in H10; destruct H10.
+                   rewrite H0 in H2.
+                   rewrite H3 in H2.
+                   Admitted.
+                   rewrite  H2.
+                   (* stuck *)
 
 
 Theorem PreserveSearchTreeInvariant :
@@ -825,34 +798,27 @@ Theorem PreserveSearchTreeInvariant :
 Proof.
   intros.
   inversion H; subst; clear H.
-  induction H0.
-  - unfold insert23tree; unfold insertHelper.
-    apply srch with None None.
+  unfold insert23tree.
+  apply (PreserveSearchInsertHelper lower upper k t) in H0.
+  destruct (insertHelper k t).
+  - eapply srch.
+    apply H0.
+  - destruct H0.
+    eapply srch.
     apply srch_node2.
-    + apply srch_empty.
-    + apply srch_empty.
-    + unfold k_inBounds; auto.
-  - apply srch with (min' k lower) (max' k upper).
-    apply PreserveSearchInsertHelper with (k:=k) in H0_.
-    apply PreserveSearchInsertHelper with (k:=k) in H0_0.
-    unfold insert23tree.
-    destruct (insertHelper k t1).
-    Admitted.
-    
-  
-  
-  
-  
-  (*
-  
-    apply Search_node2_conj in H; destruct H.
-    apply IHSearchTree'1 in H; clear IHSearchTree'1.
-    apply IHSearchTree'2 in H1; clear IHSearchTree'2.
-    inversion H; subst.
-    inversion H1; subst.
-    apply srch with lower0 upper1.
-    Admitted. (* REDO PROOF *)
-*)
+    + apply H.
+    + apply H0.
+    + destruct lower; destruct upper; unfold min' in *; unfold max' in *; unfold k_inBounds; split; auto.
+      * apply TreeBounds in H.
+        apply H.
+      * apply TreeBounds in H0.
+        apply H0.
+      * apply TreeBounds in H.
+        apply H.
+      * apply TreeBounds in H0.
+        apply H0.
+Qed.
+
 
 Lemma PreserveBalanceInsertHelper : forall n k t,
   Balanced' n t ->
@@ -863,32 +829,36 @@ Lemma PreserveBalanceInsertHelper : forall n k t,
   end.
 Proof.
   intros.
-  induction H; intros.
-  
-  (* dont know what to do in the first case *)
-  
-  Focus 2.
-    Admitted.
-    
-    
+  induction H; intros; simpl.
+  - split; apply b_treeEmpty.
+  - destruct t1; destruct t2.
+    + destruct (k <=? k0); apply b_tree3; apply H.
+    + destruct (k <=? k0).
+      * simpl.
+        apply b_tree3; assumption.
+      * simpl.
+        destruct t2_1.
+        -- destruct t2_2.
+           ++ destruct (k <=? n0); apply b_tree2; try assumption.
+              ** (*stuck*)
+
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
 Proof.
   intros.
-  inversion H; subst.
-  remember n.
-  generalize dependent n.
-  induction H0; intros.
-  - inversion H; subst.
-    apply PreserveBalanceInsertHelper with (k:=k) in H0.
-    simpl in *.
-    apply bal with (n:=n0).
-    unfold insert23tree; unfold insertHelper.
+  inversion H; subst; clear H.
+  unfold insert23tree.
+  apply PreserveBalanceInsertHelper with (k:=k) in H0.
+  destruct (insertHelper k t).
+  - apply bal with n.
     apply H0.
-  - (* induction again? *)
-  
-Admitted.
+  - destruct H0.
+    apply bal with (S n).
+    apply b_tree2.
+    + apply H.
+    + apply H0.
+Qed.
 
 Lemma keyIn_insert : forall t k, match insertHelper k t with
   | irTree t' => keyIn k t'
@@ -902,18 +872,41 @@ Proof.
   intros.
   induction t.
   - simpl.
-    apply In2_match.
-  - 
+    destruct (k ?= k) eqn: H.
+    + apply nat_compare_eq in H.
+      apply H.
+    + apply nat_compare_lt in H.
+      apply n_lt_n in H; inversion H.
+    + apply nat_compare_gt in H.
+      unfold gt in H.
+      apply n_lt_n in H; inversion H.
+  - simpl.
+    destruct t1.
+    + destruct t2.
+      * destruct (k <=? n) eqn:H.
+        -- apply In3_match1.
+        -- apply In3_match2.
+      * destruct (k <=? n) eqn: H.
+        -- simpl.
+           apply In3_match1.
+        -- simpl.
+           destruct t2_1.
+           ++ destruct t2_2.
+              ** destruct (k <=? n0) eqn: H1; constructor.
+                 --- apply leb_complete in H1; apply leb_complete_conv in H.
+                    
 Admitted.
 
 Theorem InsertCorrectness1 :
   forall t k, keyIn k (insert23tree k t).
 Proof.
   intros.
+  unfold insert23tree.
   induction t; unfold insert23tree.
   - simpl.
     apply In2_match.
-  - 
+  - destruct (insertHelper k (node2 n t1 t2)) eqn: H.
+    
     (*apply keyIn_insert in IHt1.
       why cant I do this *)
 Admitted.
