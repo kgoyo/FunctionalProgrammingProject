@@ -798,22 +798,54 @@ induction H; intros.
          ++ unfold min'; unfold max'.
             destruct lower; destruct upper; unfold k_inBounds; split; auto.
     * destruct (k <=? k0) eqn: H2; simpl.
-      ++ apply srch_node3.
-         -- apply srch_empty.
+      -- apply srch_node3.
+         ++ apply srch_empty.
             unfold correct_Bounds; destruct lower; unfold min'; auto.
-         -- apply srch_empty.
+         ++ apply srch_empty.
             apply leb_complete in H2.
             unfold correct_Bounds.
             apply H2.
-         -- destruct upper.
+         ++ destruct upper.
             ** apply srch_node2; inversion H0; subst; clear H0.
                --- apply H8.
                --- unfold k_inBounds in H10; destruct H10.
                    apply leb_complete in H2.
                    unfold max'.
-                   Admitted.
-                   (* stuck *)
-
+                   rewrite H3 in H0.
+                   rewrite H0 in H2.
+                   apply max_r in H2.
+                   rewrite H2.
+                   apply H9.
+               --- apply leb_complete in H2.
+                   unfold k_inBounds in *; destruct H10; split; auto.
+                   unfold max'.
+                   rewrite H3 in H0.
+                   rewrite H0 in H2.
+                   apply max_r in H2.
+                   rewrite H2.
+                   apply H3.
+            ** auto.
+         ++ apply leb_complete in H2; apply H2.
+         ++ unfold k_inBounds; unfold min'; unfold max'; destruct lower; destruct upper; auto.
+         ++ unfold k_inBounds in *; destruct H1; unfold min'; unfold max'; destruct lower; destruct upper; apply leb_complete in H2; auto.
+            ** split.
+               --- apply (Nat.min_le_compat k k0 n0 k0) in H2.
+                   +++ rewrite Nat.min_id in H2.
+                       apply H2.
+                   +++ apply H1.
+               --- rewrite H3 in H2.
+                   apply max_r in H2.
+                   rewrite H2.
+                   apply H3.
+            ** split; auto.
+               apply (Nat.min_le_compat k k0 n0 k0) in H2.
+               --- rewrite Nat.min_id in H2.
+                   apply H2.
+               --- apply H1.
+            ** split; auto.
+               Admitted.
+               
+             
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).

@@ -1,0 +1,11 @@
+Useful Lemmas
+
+max_l: forall n m : nat, m <= n -> Init.Nat.max n m = n
+
+max_r: forall n m : nat, n <= m -> Init.Nat.max n m = m
+
+Nat.min_le_compat:
+  forall n m p q : nat, n <= m -> p <= q -> Nat.min n p <= Nat.min m q
+
+Nat.max_le_compat:
+  forall n m p q : nat, n <= m -> p <= q -> Nat.max n p <= Nat.max m q
