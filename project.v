@@ -797,7 +797,7 @@ induction H; intros.
                auto.
          ++ unfold min'; unfold max'.
             destruct lower; destruct upper; unfold k_inBounds; split; auto.
-    * destruct (k <=? k0) eqn: H2; simpl.
+    * destruct (k <=? k0) eqn: H2.
       -- apply srch_node3.
          ++ apply srch_empty.
             unfold correct_Bounds; destruct lower; unfold min'; auto.
@@ -843,9 +843,12 @@ induction H; intros.
                    apply H2.
                --- apply H1.
             ** split; auto.
-               Admitted.
+               rewrite H3. (* why doesnt auto rewrite *)
+               auto.
+      -- (* stuck *)
                
-             
+               Admitted.
+
 
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
@@ -883,6 +886,8 @@ Lemma PreserveBalanceInsertHelper : forall n k t,
   end.
 Proof.
   intros.
+  remember n.
+  generalize dependent n.
   induction H; intros; simpl.
   - split; apply b_treeEmpty.
   - destruct t1; destruct t2.
@@ -890,11 +895,12 @@ Proof.
     + destruct (k <=? k0).
       * simpl.
         apply b_tree3; assumption.
-      * simpl.
-        destruct t2_1.
+      * apply IHBalanced'2 in Heqn0.
+        
+        (* destruct t2_1.
         -- destruct t2_2.
            ++ destruct (k <=? n0); apply b_tree2; try assumption.
-              ** (*stuck*)
+              *)
 Admitted.
 
 Theorem PreserveBalancedInvariant :
@@ -943,13 +949,55 @@ Proof.
       * destruct (k <=? n) eqn: H.
         -- simpl.
            apply In3_match1.
-        -- simpl.
-           destruct t2_1.
-           ++ destruct t2_2.
-              ** destruct (k <=? n0) eqn: H1; constructor.
-                 --- apply leb_complete in H1; apply leb_complete_conv in H.
-                     
-                    (* stuck *)
+        -- destruct (insertHelper k (node2 n0 t2_1 t2_2)).
+           ++ apply In2_right.
+              apply IHt2.
+           ++ destruct (k ?= n1) eqn : H1.
+              ** apply nat_compare_eq in H1.
+                 rewrite H1.
+                 apply In3_match2.
+              ** apply In3_middle.
+                 apply IHt2.
+              ** apply In3_right.
+                 apply IHt2.
+      * destruct (k <=? n) eqn: H.
+        -- destruct (insertHelper k empty).
+           ++ apply In2_left.
+              apply IHt1.
+           ++ destruct (k ?= n2).
+              ** rewrite IHt1.
+                 apply In3_match1.
+              ** apply In3_left.
+                 apply IHt1.
+              ** apply In3_middle.
+                 apply IHt1.
+        -- destruct (insertHelper k (node3 n0 n1 t2_1 t2_2 t2_3)).
+           ++ apply In2_right.
+              apply IHt2.
+           ++ destruct (k ?= n2).
+              ** rewrite IHt2.
+                 apply In3_match2.
+              ** apply In3_middle; assumption.
+              ** apply In3_right; assumption.
+    + destruct (k <=? n).
+      * destruct (insertHelper k (node2 n0 t1_1 t1_2)).
+        -- apply In2_left; assumption.
+        -- destruct (k ?= n1).
+           ++ rewrite IHt1.
+              apply In3_match1.
+           ++ apply In3_left; assumption.
+           ++ apply In3_middle; assumption.
+      * (destruct (insertHelper k t2)).
+        -- apply In2_right; assumption.
+        -- destruct (k ?= n1).
+           ++ rewrite IHt2.
+              apply In3_match2.
+           ++ apply In3_middle; assumption.
+           ++ apply In3_right; assumption.
+    + destruct (k <=? n). (*Andreas stopped here*)
+
+
+
 Admitted.
 
 Theorem InsertCorrectness1 :
