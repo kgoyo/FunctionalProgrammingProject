@@ -887,22 +887,143 @@ Lemma PreserveBalanceInsertHelper : forall n k t,
   end.
 Proof.
   intros.
-  remember n.
-  generalize dependent n.
   induction H; intros; simpl.
   - split; apply b_treeEmpty.
   - destruct t1; destruct t2.
     + destruct (k <=? k0); apply b_tree3; apply H.
     + destruct (k <=? k0).
-      * simpl.
-        apply b_tree3; assumption.
-      * apply IHBalanced'2 in Heqn0.
-        
-        (* destruct t2_1.
-        -- destruct t2_2.
-           ++ destruct (k <=? n0); apply b_tree2; try assumption.
-              *)
-Admitted.
+      * destruct (insertHelper k empty).
+        -- apply b_tree2.
+           ** apply IHBalanced'1.
+           ** apply H0.
+        -- apply b_tree3; destruct IHBalanced'1; auto.
+      * destruct (insertHelper k (node2 n0 t2_1 t2_2)). 
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k empty).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k (node3 n0 n1 t2_1 t2_2 t2_3)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k (node2 n0 t1_1 t1_2)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k empty).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k (node2 n0 t1_1 t1_2)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k (node2 n1 t2_1 t2_2)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k (node2 n0 t1_1 t1_2)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k (node3 n1 n2 t2_1 t2_2 t2_3)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k (node3 n0 n1 t1_1 t1_2 t1_3)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k empty).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k (node3 n0 n1 t1_1 t1_2 t1_3)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k (node2 n2 t2_1 t2_2)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+    + destruct (k <=? k0).
+      * destruct (insertHelper k (node3 n0 n1 t1_1 t1_2 t1_3)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'1; assumption.
+      * destruct (insertHelper k (node3 n2 n3 t2_1 t2_2 t2_3)).
+        -- apply b_tree2; assumption.
+        -- apply b_tree3; destruct IHBalanced'2; assumption.
+  - destruct t1.
+    + destruct t2.
+      * destruct t3.
+        -- destruct (k <=? k2).
+           ++ destruct (k <=? k1).
+              ** split; apply b_tree2; assumption.
+              ** split; apply b_tree2; assumption.
+           ++ split; apply b_tree2; assumption.
+        -- destruct (k <=? k2) eqn:H2.
+           ++ destruct (k <=? k1) eqn:H3.
+              ** destruct (insertHelper k empty).
+                 --- apply b_tree3; assumption.
+                 --- split; apply b_tree2; destruct IHBalanced'1; assumption.
+              ** destruct (insertHelper k empty).
+                 --- apply b_tree3; assumption.
+                 --- split; apply b_tree2; destruct IHBalanced'1; assumption.
+           ++ destruct (insertHelper k (node2 n0 t3_1 t3_2)).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'3; assumption.
+        -- destruct (k <=? k2) eqn:H2.
+           ++ destruct (k <=? k1) eqn:H3.
+              ** destruct (insertHelper k empty).
+                 --- apply b_tree3; assumption.
+                 --- split; apply b_tree2; destruct IHBalanced'1; assumption.
+              ** destruct (insertHelper k empty).
+                 --- apply b_tree3; assumption.
+                 --- split; apply b_tree2; destruct IHBalanced'1; assumption.
+           ++ destruct (insertHelper k (node3 n0 n1 t3_1 t3_2 t3_3)).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'3; assumption.
+      * destruct (k <=? k2).
+        -- destruct (k <=? k1).
+           ++ destruct (insertHelper k empty).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'1; assumption.
+           ++ destruct (insertHelper k (node2 n0 t2_1 t2_2)).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'2; assumption.
+        -- destruct (insertHelper k t3).
+           ++ apply b_tree3; assumption.
+           ++ split; apply b_tree2; destruct IHBalanced'3; assumption.
+      * destruct (k <=? k2).
+        -- destruct (k <=? k1).
+           ++ destruct (insertHelper k empty).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'1; assumption.
+           ++ destruct (insertHelper k (node3 n0 n1 t2_1 t2_2 t2_3)).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'2; assumption.
+        -- destruct (insertHelper k t3).
+           ++ apply b_tree3; assumption.
+           ++ split; apply b_tree2; destruct IHBalanced'3; assumption.
+    + destruct (k <=? k2).
+        -- destruct (k <=? k1).
+           ++ destruct (insertHelper k (node2 n0 t1_1 t1_2)).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'1; assumption.
+           ++ destruct (insertHelper k t2).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'2; assumption.
+        -- destruct (insertHelper k t3).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'3; assumption.
+    + destruct (k <=? k2).
+        -- destruct (k <=? k1).
+           ++ destruct (insertHelper k (node3 n0 n1 t1_1 t1_2 t1_3)).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'1; assumption.
+           ++ destruct (insertHelper k t2).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'2; assumption.
+        -- destruct (insertHelper k t3).
+              ** apply b_tree3; assumption.
+              ** split; apply b_tree2; destruct IHBalanced'3; assumption.
+Qed.
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
