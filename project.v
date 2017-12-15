@@ -841,14 +841,19 @@ induction H; intros.
                apply (Nat.min_le_compat k k0 n0 k0) in H2; eauto with *.
             ** eauto with *.
       -- destruct (insertHelper k (node2 n t2_1 t2_2)).
-         ++ apply leb_complete_conv in H2.
-            apply srch_node2.
-            ** unfold k_inBounds in H1; destruct lower, upper; destruct H1; unfold min'; apply srch_empty; unfold correct_Bounds; try rewrite <- H1; auto; auto.
-            ** 
-               unfold k_inBounds in H1; destruct lower, upper; destruct H1; unfold max'; apply srch_node2.
-               
-            unfold k_inBounds in H1; destruct H1; unfold min'; unfold max'; destruct lower, upper; apply leb_complete_conv in H2.
-            ** Admitted.
+         ++ apply srch_node2. 
+            ** unfold k_inBounds in H1; destruct lower, upper; destruct H1; unfold min'; apply srch_empty; unfold correct_Bounds.
+               try rewrite <- H1; auto.
+               --- apply leb_complete_conv in H2. apply Nat.lt_le_incl in H2. 
+                   rewrite H2 in H1. apply min_r in H1. rewrite H1. 
+                   inversion H. unfold correct_Bounds in H4. apply H4.
+               --- assumption.
+               --- assumption.
+            ** unfold k_inBounds in H1; destruct lower, upper; destruct H1; unfold max', min' in *; 
+               apply leb_complete_conv in H2; apply Nat.lt_le_incl in H2;
+               apply min_r in H2; rewrite H2 in IHSearchTree'2; apply IHSearchTree'2.
+            ** unfold k_inBounds in *; destruct lower, upper; destruct H1; unfold max', min' in *.
+               --- Search (_ <= max _ _). Admitted. (** Marie Louisa **)
 
 
 Theorem PreserveSearchTreeInvariant :
