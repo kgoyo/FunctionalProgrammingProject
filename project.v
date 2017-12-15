@@ -67,27 +67,7 @@ Fixpoint insertHelper (k:nat) (t:tree23) : insertResult :=
 
   match t with
 
-  (* base cases *)
-
   | empty => irSplit empty k empty
-
-  | node2 n empty empty =>
-    match Nat.leb k n with
-    | true  => irTree (node3 k n empty empty empty)
-    | false => irTree (node3 n k empty empty empty)
-    end
-
-  | node3 n1 n2 empty empty empty =>
-    match Nat.leb k n2 with
-      | true  =>
-        match Nat.leb k n1 with
-        | true  => irSplit (node2 k empty empty) n1 (node2 n2 empty empty) (* k is smallest *)
-        | false => irSplit (node2 n1 empty empty) k (node2 n2 empty empty) (* k is middle *)
-        end
-      |   false => irSplit (node2 n1 empty empty) n2 (node2 k empty empty)   (* k is largest *)
-    end
-
-  (* recursive cases *)
 
   | node2 n t1 t2 =>
     match Nat.leb k n with
@@ -1068,215 +1048,54 @@ Proof.
       unfold gt in H.
       apply n_lt_n in H; inversion H.
   - simpl.
-    destruct t1.
-    + destruct t2.
-      * destruct (k <=? n) eqn:H.
-        -- apply In3_match1.
-        -- apply In3_match2.
-      * destruct (k <=? n) eqn: H.
-        -- simpl.
-           apply In3_match1.
-        -- destruct (insertHelper k (node2 n0 t2_1 t2_2)).
-           ++ apply In2_right.
-              apply IHt2.
-           ++ destruct (k ?= n1) eqn : H1.
-              ** apply nat_compare_eq in H1.
-                 rewrite H1.
-                 apply In3_match2.
-              ** apply In3_middle.
-                 apply IHt2.
-              ** apply In3_right.
-                 apply IHt2.
-      * destruct (k <=? n) eqn: H.
-        -- destruct (insertHelper k empty).
-           ++ apply In2_left.
-              apply IHt1.
-           ++ destruct (k ?= n2).
-              ** rewrite IHt1.
-                 apply In3_match1.
-              ** apply In3_left.
-                 apply IHt1.
-              ** apply In3_middle.
-                 apply IHt1.
-        -- destruct (insertHelper k (node3 n0 n1 t2_1 t2_2 t2_3)).
-           ++ apply In2_right.
-              apply IHt2.
-           ++ destruct (k ?= n2).
-              ** rewrite IHt2.
-                 apply In3_match2.
-              ** apply In3_middle; assumption.
-              ** apply In3_right; assumption.
-    + destruct (k <=? n).
-      * destruct (insertHelper k (node2 n0 t1_1 t1_2)).
+    + destruct (k <=? n) eqn:H1.
+      * destruct (insertHelper k t1).
         -- apply In2_left; assumption.
-        -- destruct (k ?= n1).
-           ++ rewrite IHt1.
-              apply In3_match1.
-           ++ apply In3_left; assumption.
-           ++ apply In3_middle; assumption.
-      * (destruct (insertHelper k t2)).
-        -- apply In2_right; assumption.
-        -- destruct (k ?= n1).
-           ++ rewrite IHt2.
-              apply In3_match2.
-           ++ apply In3_middle; assumption.
-           ++ apply In3_right; assumption.
-    + destruct (k <=? n).
-      * destruct (insertHelper k (node3 n0 n1 t1_1 t1_2 t1_3)).
-        -- apply In2_left; assumption.
-        -- destruct (k ?= n2).
+        -- destruct (k ?= n0) eqn:H2.
            ++ rewrite IHt1.
               apply In3_match1.
            ++ apply In3_left; assumption.
            ++ apply In3_middle; assumption.
       * destruct (insertHelper k t2).
         -- apply In2_right; assumption.
-        -- destruct (k ?= n2).
+        -- destruct (k ?= n0) eqn: H2.
            ++ rewrite IHt2.
               apply In3_match2.
            ++ apply In3_middle; assumption.
            ++ apply In3_right; assumption.
   - simpl.
-    destruct t1.
-    + destruct t2.
-      * destruct t3.
-        -- destruct (k <=? n0) eqn:H1.
-           ++ destruct (k <=? n) eqn:H2.
-              ** destruct (k ?= n) eqn:H3.
-                 --- apply nat_compare_eq in H3; auto.
-                 --- apply In2_match.
-                 --- apply leb_complete in H2.
-                     apply nat_compare_gt in H3.
-                     apply le_lt_or_eq in H2.
-                     destruct H2;
-                     unfold gt in H3;
-                     rewrite H in H3; apply n_lt_n in H3; inversion H3.
-              ** destruct (k ?= k) eqn:H3.
-                 --- reflexivity.
-                 --- apply nat_compare_lt in H3.
-                     apply n_lt_n in H3; inversion H3.
-                 --- apply nat_compare_gt in H3; unfold gt in H3.
-                     apply n_lt_n in H3; inversion H3.
-           ++ destruct (k ?= n0) eqn:H2.
-              ** apply nat_compare_eq in H2.
-                 rewrite H2; reflexivity.
-              ** apply leb_complete_conv in H1; apply nat_compare_lt in H2.
-                 rewrite H2 in H1; apply n_lt_n in H1; inversion H1.
-              ** apply In2_match.
-        -- destruct (k <=? n0) eqn: H1.
-           ++ destruct (k <=? n) eqn: H2.
-              ** destruct (insertHelper k empty).
-                 --- apply In3_left; assumption.
-                 --- destruct (k ?= n) eqn: H3.
-                     +++ apply nat_compare_eq in H3.
-                         rewrite H3; reflexivity.
-                     +++ destruct (k ?= n2) eqn: H4.
-                         *** apply nat_compare_eq in H4; rewrite H4.
-                             apply In2_match.
-                         *** apply In2_left; assumption.
-                         *** apply In2_right; assumption.
-                     +++ apply nat_compare_gt in H3; apply leb_complete in H2; unfold gt in H3.
-                         apply le_lt_or_eq in H2.
-                         destruct H2; rewrite H in H3; apply n_lt_n in H3; inversion H3.
-              ** destruct (insertHelper k empty).
-                 --- apply In3_middle; assumption.
-                 --- destruct (k ?= n2) eqn: H3.
-                     +++ apply nat_compare_eq in H3; rewrite H3; reflexivity.
-                     +++ apply In2_right; assumption.
-                     +++ apply In2_left; assumption.
-           ++ destruct (insertHelper k (node2 n1 t3_1 t3_2)).
-              ** apply In3_right; assumption.
-              ** destruct (k ?= n0) eqn: H2.
-                 --- apply nat_compare_eq; rewrite H2; reflexivity.
-                 --- apply leb_complete_conv in H1; apply nat_compare_lt in H2.
-                     rewrite H1 in H2; apply n_lt_n in H2; inversion H2.
-                 --- destruct (k ?= n2) eqn: H3.
-                     +++ apply nat_compare_eq in H3; rewrite H3.
-                         apply In2_match.
-                     +++ apply In2_left; assumption.
-                     +++ apply In2_right; assumption.
-        -- destruct (k <=? n0) eqn: H1.
-           ++ destruct (k <=? n) eqn: H2.
-              ** destruct (insertHelper k empty).
-                 --- apply In3_left; assumption.
-                 --- destruct (k ?= n) eqn: H3.
-                     +++ apply nat_compare_eq in H3; rewrite H3; reflexivity.
-                     +++ destruct (k ?= n3) eqn: H4.
-                         *** rewrite IHt1.
-                             apply In2_match.
-                         *** apply In2_left; assumption.
-                         *** apply In2_right; assumption.
-                     +++ apply nat_compare_gt in H3; apply leb_complete in H2.
-                         apply le_lt_or_eq in H2; destruct H2; unfold gt in H3; rewrite H in H3; apply n_lt_n in H3; inversion H3.
-              ** destruct (insertHelper k empty).
-                 --- apply In3_middle; assumption.
-                 --- destruct (k ?= n3) eqn: H3.
-                     +++ assumption.
-                     +++ apply In2_right; assumption.
-                     +++ apply In2_left; assumption.
-           ++ destruct (insertHelper k (node3 n1 n2 t3_1 t3_2 t3_3)).
-              ** apply In3_right; assumption.
-              ** destruct (k ?= n0) eqn: H2.
-                 --- apply nat_compare_eq in H2; assumption.
-                 --- apply nat_compare_lt in H2; apply leb_complete_conv in H1.
-                     rewrite H1 in H2. apply n_lt_n in H2; inversion H2.
-                 --- destruct (k ?= n3) eqn: H3.
-                     +++ rewrite IHt3.
-                         apply In2_match.
-                     +++ apply In2_left; assumption.
-                     +++ apply In2_right; assumption.
-      * destruct (k <=? n0) eqn: H1.
-        -- destruct (k <=? n) eqn: H2.
-           ++ destruct (insertHelper k empty).
-              ** apply In3_left; assumption.
-              ** destruct (k ?= n) eqn: H3.
-                 --- apply nat_compare_eq in H3; rewrite H3; reflexivity.
-                 --- destruct (k ?= n2) eqn: H4.
-                     +++ rewrite IHt1.
-                         apply In2_match.
-                     +++ apply In2_left; assumption.
-                     +++ apply In2_right; assumption.
-                 --- apply leb_complete in H2; apply nat_compare_gt in H3; unfold gt in H3.
-                     apply le_lt_or_eq in H2; destruct H2; rewrite H in H3; apply n_lt_n in H3; inversion H3.
-           ++ destruct (insertHelper k (node2 n1 t2_1 t2_2)).
-              ** apply In3_middle; assumption.
-              ** destruct (k ?= n2) eqn: H3.
-                 --- assumption.
-                 --- apply In2_right; assumption.
-                 --- apply In2_left; assumption.
-        -- destruct (insertHelper k t3).
-           ++ apply In3_right; assumption.
-           ++ destruct (k ?= n0) eqn: H2.
-              ** apply nat_compare_eq in H2; assumption.
-              ** apply leb_complete_conv in H1; apply nat_compare_lt in H2; unfold gt in H1.
-                 rewrite H2 in H1.
-                 apply n_lt_n in H1; inversion H1.
-              ** destruct (k ?= n2) eqn: H3.
-                 --- rewrite IHt3.
-                     apply In2_match.
-                 --- apply In2_left; assumption.
-                 --- apply In2_right; assumption.
-      * destruct (k <=? n0) eqn: H1.
-        -- destruct (k <=? n) eqn: H2.
-           ++ destruct (insertHelper k empty).
-              ** apply In3_left; assumption.
-              ** destruct (k ?= n) eqn: H3.
-                 --- apply nat_compare_eq in H3; assumption.
-                 --- destruct (k ?= n3) eqn: H4.
-                     +++ rewrite IHt1.
-                         apply In2_match.
-                     +++ apply In2_left; assumption.
-                     +++ apply In2_right; assumption.
-                 --- apply nat_compare_gt in H3; unfold gt in H3; apply leb_complete in H2.
-                     apply le_lt_or_eq in H2; destruct H2; rewrite H in H3; apply n_lt_n in H3; inversion H3.
-           ++ destruct (insertHelper k (node3 n1 n2 t2_1 t2_2 t2_3)).
-              ** apply In3_middle; assumption.
-              ** destruct (k ?= n3) eqn: H3.
-                 --- assumption.
-                 --- apply In2_right; assumption.
-                 --- apply In2_left; assumption.
-
-Admitted.
+    destruct (k <=? n0) eqn: H1.
+    + destruct (k <=? n) eqn: H2.
+      * destruct (insertHelper k t1).
+        -- apply In3_left; assumption.
+        -- destruct (k ?= n) eqn: H3.
+           ++ apply nat_compare_eq in H3; assumption.
+           ++ destruct (k ?= n1) eqn: H4.
+              ** rewrite IHt1.
+                 apply In2_match.
+              ** apply In2_left; assumption.
+              ** apply In2_right; assumption.
+           ++ apply leb_complete in H2; apply nat_compare_gt in H3; unfold gt in H3.
+              apply le_lt_or_eq in H2.
+              destruct H2; rewrite H in H3; apply n_lt_n in H3; inversion H3.
+      * destruct (insertHelper k t2).
+        -- apply In3_middle; assumption.
+        -- destruct ( k?= n1) eqn: H3.
+           ++ assumption.
+           ++ apply In2_right; assumption.
+           ++ apply In2_left; assumption.
+    + destruct (insertHelper k t3).
+      * apply In3_right; assumption.
+      * destruct (k ?= n0) eqn: H2.
+        -- apply nat_compare_eq in H2; assumption.
+        -- apply leb_complete_conv in H1; unfold gt in H1; apply nat_compare_lt in H2.
+           rewrite H2 in H1; apply n_lt_n in H1; inversion H1.
+        -- destruct (k ?= n1) eqn: H3.
+           ++ rewrite IHt3.
+              apply In2_match.
+           ++ apply In2_left; assumption.
+           ++ apply In2_right; assumption.
+Qed.
 
 Theorem InsertCorrectness1 :
   forall t k, keyIn k (insert23tree k t).
@@ -1299,11 +1118,76 @@ Theorem insertCorrectness2 :
   forall t k k', keyIn k' t -> keyIn k' (insert23tree k t).
 Proof.
   intros.
-  induction H.
-  - unfold insert23tree.
-    simpl.
-    
-Admitted.
+  induction H; unfold insert23tree in *; simpl.
+  - destruct (k <=? k0).
+    + destruct (insertHelper k t1); constructor.
+    + destruct (insertHelper k t2); constructor.
+  - destruct (k <=? n).
+    + destruct (insertHelper k t1).
+      * apply In2_left; assumption.
+      * inversion IHkeyIn; subst; constructor; assumption.
+    + destruct (insertHelper k t2); constructor; assumption.
+  - destruct (k <=? n).
+    + destruct (insertHelper k t1); constructor; assumption.
+    + destruct (insertHelper k t2).
+      * apply In2_right; assumption.
+      * inversion IHkeyIn; subst; constructor; assumption.
+  - destruct (k <=? k2).
+    + destruct (k <=? k0).
+      * destruct (insertHelper k t1); constructor.
+      * destruct (insertHelper k t2).
+        -- constructor.
+        -- apply In2_left. apply In2_match.
+    + destruct (insertHelper k t3).
+      * constructor.
+      * apply In2_left. apply In2_match.
+  - destruct (k <=? k0).
+    + destruct (k <=? k1).
+      * destruct (insertHelper k t1).
+        -- constructor.
+        -- apply In2_right. apply In2_match.
+      * destruct (insertHelper k t2).
+        -- constructor.
+        -- apply In2_right. apply In2_match.
+    + destruct (insertHelper k t3); constructor.
+  - destruct (k <=? k2).
+    + destruct (k <=? k1).
+      * destruct (insertHelper k t1); constructor; assumption.
+      * destruct (insertHelper k t2).
+        -- apply In3_left; assumption.
+        -- apply In2_left; apply In2_left. assumption.
+    + destruct (insertHelper k t3).
+      * apply In3_left; assumption.
+      * apply In2_left; apply In2_left; assumption.
+  - destruct (k <=? k2).
+    + destruct (k <=? k1).
+      * destruct (insertHelper k t1).
+        -- apply In3_middle; assumption.
+        -- apply In2_right; apply In2_left; assumption.
+      * destruct (insertHelper k t2).
+        -- apply In3_middle; assumption.
+        -- inversion IHkeyIn; subst.
+           ++ apply In2_match.
+           ++ apply In2_left; apply In2_right; assumption.
+           ++ apply In2_right; apply In2_left; assumption.
+    + destruct (insertHelper k t3).
+      * apply In3_middle; assumption.
+      * apply In2_left; apply In2_right; assumption.
+  - destruct (k <=? k2).
+    + destruct (k <=? k1).
+      * destruct (insertHelper k t1).
+        -- apply In3_right; assumption.
+        -- apply In2_right; apply In2_right; assumption.
+      * destruct (insertHelper k t2).
+        -- apply In3_right; assumption.
+        -- apply In2_right; apply In2_right; assumption.
+    + destruct (insertHelper k t3).
+      * apply In3_right; assumption.
+      * inversion IHkeyIn; subst.
+        -- apply In2_right; apply In2_match.
+        -- apply In2_right; apply In2_left; assumption.
+        -- apply In2_right; apply In2_right; assumption.
+Qed.
 
 Theorem insertCorrectness3 :
   forall t k k', keyIn k' (insert23tree k t) -> k' = k \/ keyIn k' t.
