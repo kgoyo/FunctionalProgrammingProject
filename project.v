@@ -298,19 +298,11 @@ Qed.
 Lemma n_lt_n : forall n, n<n -> False.
 Proof.
   intros.
-  inversion H; subst.
-  - clear H.
-    induction n.
-    + inversion H0.
-    + apply IHn.
-      inversion H0.
-      apply H0.
-  - clear H.
-    induction m.
-    + inversion H0.
-    + apply IHm.
-      apply le_S_n in H0.
-      apply H0.
+  induction n.
+  - inversion H.
+  - apply IHn.
+    apply lt_S_n.
+    apply H.
 Qed.
 
 
