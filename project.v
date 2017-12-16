@@ -1193,17 +1193,128 @@ Theorem insertCorrectness3 :
   forall t k k', keyIn k' (insert23tree k t) -> k' = k \/ keyIn k' t.
 Proof.
   intros.
-  induction t; intros.
-  - unfold insert23tree in H.
-    simpl in *.
-    inversion H; subst.
+  unfold insert23tree in H.
+  induction t; intros; simpl in H.
+  - inversion H; subst.
     + left; reflexivity.
     + inversion H2.
     + right; apply H2.
-  - unfold insert23tree in H.
-    simpl in H.
-    
-    (* stuck again *)
-Admitted.
-
-
+  - destruct (k <=? n).
+    + destruct (insertHelper k t1); clear IHt2.
+      * inversion H; subst; clear H.
+        -- right; apply In2_match.
+        -- destruct IHt1.
+           ++ assumption.
+           ++ left; assumption.
+           ++ right; apply In2_left; assumption.
+        -- right; apply In2_right; assumption.
+      * inversion H; subst; clear H.
+        -- destruct IHt1.
+           ++ apply In2_match.
+           ++ left; assumption.
+           ++ right; apply In2_left; assumption.
+        -- right; apply In2_match.
+        -- destruct IHt1.
+           ++ apply In2_left; assumption.
+           ++ left; assumption.
+           ++ right; apply In2_left; assumption.
+        -- destruct IHt1.
+           ++ apply In2_right; assumption.
+           ++ left; assumption.
+           ++ right; apply In2_left; assumption.
+        -- right; apply In2_right; assumption.
+    + destruct (insertHelper k t2); clear IHt1.
+      * inversion H; subst; clear H.
+        -- right; apply In2_match.
+        -- right; apply In2_left; assumption.
+        -- destruct IHt2.
+           ++ assumption.
+           ++ left; assumption.
+           ++ right; apply In2_right; assumption.
+      * inversion H; subst; clear H.
+        -- right; apply In2_match.
+        -- destruct IHt2.
+           ++ apply In2_match.
+           ++ left; assumption.
+           ++ right; apply In2_right; assumption.
+        -- right; apply In2_left; assumption.
+        -- destruct IHt2.
+           ++ apply In2_left; assumption.
+           ++ left; assumption.
+           ++ right; apply In2_right; assumption.
+        -- destruct IHt2.
+           ++ apply In2_right; assumption.
+           ++ left; assumption.
+           ++ right; apply In2_right; assumption.
+  - destruct (k <=? n0).
+    + destruct (k <=? n).
+      * destruct (insertHelper k t1); clear IHt2 IHt3.
+        -- inversion H; subst; clear H.
+           ++ right; apply In3_match1.
+           ++ right; apply In3_match2.
+           ++ destruct IHt1.
+              ** assumption.
+              ** left; assumption.
+              ** right; apply In3_left; assumption.
+           ++ right; apply In3_middle; assumption.
+           ++ right; apply In3_right; assumption.
+        -- inversion H; subst; clear H.
+           ++ right; apply In3_match1.
+           ++ destruct IHt1.
+              ** assumption.
+              ** left; assumption.
+              ** right; apply In3_left; assumption.
+           ++ inversion H2; subst; clear H2.
+              ** right; apply In3_match2.
+              ** right; apply In3_middle; assumption.
+              ** right; apply In3_right; assumption.
+      * destruct (insertHelper k t2); clear IHt1 IHt3.
+        -- inversion H; subst; clear H.
+           ++ right; apply In3_match1.
+           ++ right; apply In3_match2.
+           ++ right; apply In3_left; assumption.
+           ++ destruct IHt2.
+              ** assumption.
+              ** left; assumption.
+              ** right; apply In3_middle; assumption.
+           ++ right; apply In3_right; assumption.
+        -- inversion H; subst; clear H.
+           ++ destruct IHt2.
+              ** apply In2_match.
+              ** left; assumption.
+              ** right; apply In3_middle; assumption.
+           ++ inversion H2; subst; clear H2.
+              ** right; apply In3_match1.
+              ** right; apply In3_left; assumption.
+              ** destruct IHt2.
+                 --- apply In2_left; assumption.
+                 --- left; assumption.
+                 --- right; apply In3_middle; assumption.
+           ++ inversion H2; subst; clear H2.
+              ** right; apply In3_match2.
+              ** destruct IHt2.
+                 --- apply In2_right; assumption.
+                 --- left; assumption.
+                 --- right; apply In3_middle; assumption.
+              ** right; apply In3_right; assumption.
+    + destruct (insertHelper k t3); clear IHt1 IHt2.
+      * inversion H; subst; clear H.
+        -- right; apply In3_match1.
+        -- right; apply In3_match2.
+        -- right; apply In3_left; assumption.
+        -- right; apply In3_middle; assumption.
+        -- destruct IHt3.
+           ++ assumption.
+           ++ left; assumption.
+           ++ right; apply In3_right; assumption.
+      * inversion H; subst; clear H.
+        -- right; apply In3_match2.
+        -- inversion H2; subst; clear H2.
+           ++ right; apply In3_match1.
+           ++ right; apply In3_left; assumption.
+           ++ right; apply In3_middle; assumption.
+        -- destruct IHt3.
+           ++ assumption.
+           ++ left; assumption.
+           ++ right; apply In3_right; assumption.
+Qed.
