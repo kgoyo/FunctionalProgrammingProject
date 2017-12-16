@@ -726,9 +726,54 @@ Lemma PreserveSearchInsertHelper : forall lower upper k t,
   end.
 Proof.
 intros.
-induction H; intros.
-- simpl; split; apply srch_empty; unfold correct_Bounds in *; unfold min'; unfold max'; try destruct o1; try destruct o2; auto.
-- simpl.
+induction H; intros; simpl.
+- split; apply srch_empty; unfold correct_Bounds in *; unfold min'; unfold max'; try destruct o1; try destruct o2; auto.
+- destruct (k <=? k0) eqn: H2.
+  + apply leb_complete in H2.
+    destruct (insertHelper k t1); clear IHSearchTree'2.
+    * apply srch_node2; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *; destruct H1; try split; auto.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite <- (max_r k k0); assumption.
+      -- apply (Nat.min_le_compat n k0 k k0) in H1.
+         ++ rewrite H3 in H2.
+            rewrite (max_r k n0); assumption.
+         ++ assumption.
+      -- rewrite H3 in H2.
+         rewrite (max_r k n); assumption.
+      -- apply (Nat.min_le_compat k k0 n k0) in H2; auto.
+         rewrite Nat.min_id in H2; assumption.
+      -- rewrite H3 in H2; auto.
+         rewrite (max_r k n0); assumption.
+      -- rewrite <- H1; auto.
+      -- rewrite H3 in H2.
+         rewrite (max_r k n); assumption.
+    * destruct IHSearchTree'1.
+      apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *; destruct H1; try split; auto.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite <- (max_r k k0); assumption.
+      -- rewrite H5 in H2.
+         rewrite (max_r k n1); assumption.
+      -- rewrite H5 in H2.
+         rewrite (max_r k n0); assumption.
+      -- apply TreeBounds in H4.
+         rewrite <- (max_r k k0); assumption.
+      -- apply TreeBounds in H4.
+         rewrite <- (max_r k k0); assumption.
+      -- apply TreeBounds in H4.
+         rewrite <- (max_r k k0); assumption.
+      -- apply TreeBounds in H4.
+         rewrite <- (max_r k k0); assumption.
+      -- apply TreeBounds in H3; assumption.
+      -- (* stuck *)
+
+-
+
+
+ simpl.
   destruct t1.
   + destruct t2.
     * destruct (k <=? k0) eqn: H2.
@@ -894,6 +939,7 @@ Proof.
       -- apply b_tree3; assumption.
       -- split; apply b_tree2; destruct IHBalanced'3; assumption.
 Qed.
+  
 
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
