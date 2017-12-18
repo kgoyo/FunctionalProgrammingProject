@@ -9,3 +9,5 @@ Nat.min_le_compat:
 
 Nat.max_le_compat:
   forall n m p q : nat, n <= m -> p <= q -> Nat.max n p <= Nat.max m q
+
+le_lt_or_eq: forall n m : nat, n <= m -> n < m \/ n = m

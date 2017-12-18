@@ -1,3 +1,5 @@
+
+
 Require Import Arith.
 
 Inductive tree23 : Type :=
@@ -742,7 +744,8 @@ induction H; intros; simpl.
       -- rewrite H3 in H2.
          rewrite (max_r k n); assumption.
     * destruct IHSearchTree'1.
-      apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *; destruct H1; try split; auto.
+      apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+      destruct H1; try split; auto.
       -- rewrite <- (max_r k k0); assumption.
       -- rewrite <- (max_r k k0); assumption.
       -- rewrite <- (max_r k k0); assumption.
@@ -760,117 +763,278 @@ induction H; intros; simpl.
       -- apply TreeBounds in H4.
          rewrite <- (max_r k k0); assumption.
       -- apply TreeBounds in H3; assumption.
-      -- (* stuck *)
-
--
-
-
- simpl.
-  destruct t1.
-  + destruct t2.
-    * destruct (k <=? k0) eqn: H2.
-      -- apply srch_node3; try apply srch_empty.
-         ++ unfold correct_Bounds; destruct lower; unfold min'; auto.
-         ++ apply leb_complete in H2.
-            unfold correct_Bounds; apply H2.
-         ++ apply leb_complete in H2.
-            unfold correct_Bounds; destruct upper; unfold max'; auto.
-            unfold k_inBounds in H1; destruct lower; destruct H1.
-            ** rewrite H3; auto.
-            ** rewrite H3; auto. 
-         ++ apply leb_complete in H2.
-            apply H2.
-         ++ unfold min'; unfold max'.
-            destruct lower; destruct upper; unfold k_inBounds; split; auto.
-         ++ apply leb_complete in H2.
-            unfold min'; unfold max'.
-            destruct lower; destruct upper; unfold k_inBounds; split; auto.
-            ** rewrite <- H2; auto.
-            ** unfold k_inBounds in H1.
-               destruct H1.
-               rewrite H3.
-               auto.
-            ** rewrite <- H2.
-               auto.
-            ** unfold k_inBounds in H1; destruct H1.
-               rewrite H3.
-               auto.
-      -- apply leb_complete_conv in H2.
-         apply Nat.lt_le_incl in H2.
-         apply srch_node3; try apply srch_empty; auto.
-         unfold k_inBounds in H1; destruct H1.
-         ++ unfold correct_Bounds; destruct lower; unfold min'; auto.
-            rewrite <- H1; auto.
-         ++ unfold correct_Bounds; destruct upper; unfold max'; auto.
-         ++ unfold min'; unfold max'.
-            destruct lower; destruct upper; unfold k_inBounds in *; destruct H1; split; auto.
-            ** rewrite <- H1.
-               auto.
-            ** rewrite H3.
-               auto.
-            ** rewrite <- H1.
-               auto.
-            ** rewrite H3.
-               auto.
-         ++ unfold min'; unfold max'.
-            destruct lower; destruct upper; unfold k_inBounds; split; auto.
-    * destruct (k <=? k0) eqn: H2.
-      -- apply srch_node3.
-         ++ apply srch_empty.
-            unfold correct_Bounds; destruct lower; unfold min'; auto.
-         ++ apply srch_empty.
-            apply leb_complete in H2.
-            unfold correct_Bounds.
-            apply H2.
-         ++ destruct upper.
-            ** apply srch_node2; inversion H0; subst; clear H0.
-               --- apply H8.
-               --- unfold k_inBounds in H10; destruct H10.
-                   apply leb_complete in H2.
-                   unfold max'.
-                   rewrite H3 in H0.
-                   rewrite H0 in H2.
-                   apply max_r in H2.
-                   rewrite H2.
-                   apply H9.
-               --- apply leb_complete in H2.
-                   unfold k_inBounds in *; destruct H10; split; auto.
-                   unfold max'.
-                   rewrite H3 in H0.
-                   rewrite H0 in H2.
-                   apply max_r in H2.
-                   rewrite H2.
-                   apply H3.
-            ** auto.
-         ++ apply leb_complete in H2; apply H2.
-         ++ unfold k_inBounds; unfold min'; unfold max'; destruct lower; destruct upper; auto.
-         ++ unfold k_inBounds in *; destruct H1; unfold min'; unfold max'; destruct lower; destruct upper; apply leb_complete in H2; auto.
-            ** split.
-               --- apply (Nat.min_le_compat k k0 n0 k0) in H2.
-                   +++ rewrite Nat.min_id in H2.
-                       apply H2.
-                   +++ apply H1.
-               --- rewrite H3 in H2.
-                   apply max_r in H2.
-                   rewrite H2.
-                   apply H3.
-            ** split; auto.
-               apply (Nat.min_le_compat k k0 n0 k0) in H2; eauto with *.
-            ** eauto with *.
-      -- destruct (insertHelper k (node2 n t2_1 t2_2)).
-         ++ apply srch_node2. 
-            ** unfold k_inBounds in H1; destruct lower, upper; destruct H1; unfold min'; apply srch_empty; unfold correct_Bounds.
-               try rewrite <- H1; auto.
-               --- apply leb_complete_conv in H2. apply Nat.lt_le_incl in H2. 
-                   rewrite H2 in H1. apply min_r in H1. rewrite H1. 
-                   inversion H. unfold correct_Bounds in H4. apply H4.
-               --- assumption.
-               --- assumption.
-            ** unfold k_inBounds in H1; destruct lower, upper; destruct H1; unfold max', min' in *; 
-               apply leb_complete_conv in H2; apply Nat.lt_le_incl in H2;
-               apply min_r in H2; rewrite H2 in IHSearchTree'2; apply IHSearchTree'2.
-            ** unfold k_inBounds in *; destruct lower, upper; destruct H1; unfold max', min' in *.
-               --- Search (_ <= max _ _). Admitted. (** Marie Louisa **)
+      -- apply Nat.max_le_iff.
+         apply TreeBounds in H4.
+         rewrite max_r in H4.
+         ++ rewrite H5 in H4.
+            right; assumption.
+         ++ assumption.
+      -- apply TreeBounds in H3; assumption.
+      -- apply Nat.max_le_iff.
+         apply TreeBounds in H4.
+         rewrite max_r in H4.
+         ++ rewrite H5 in H4.
+            right; assumption.
+         ++ assumption.
+      -- apply Nat.min_le_iff.
+         left; assumption.
+      -- rewrite max_r.
+         ++ assumption.
+         ++ rewrite H5 in H2; assumption.
+      -- apply Nat.min_le_iff.
+         left; assumption.
+      -- rewrite max_r.
+         ++ assumption.
+         ++ rewrite H5 in H2; assumption.
+  + destruct (insertHelper k t2); clear IHSearchTree'1.
+    * apply leb_complete_conv in H2; apply Nat.lt_le_incl in H2.
+      apply srch_node2; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+      destruct H1; try split; auto.
+      -- rewrite H2 in H1.
+         rewrite (min_r k n); assumption.
+      -- rewrite H2 in H1.
+         rewrite (min_r k n); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         left; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         left; assumption.
+    * apply leb_complete_conv in H2; apply Nat.lt_le_incl in H2.
+      destruct IHSearchTree'2.
+      apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+      destruct H1; try split; auto.
+      -- rewrite H2 in H1.
+         rewrite min_r; assumption.
+      -- rewrite H2 in H1.
+         rewrite min_r; assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- rewrite <- (min_r k k0); assumption.
+      -- apply TreeBounds in H3.
+         rewrite <- (min_r k k0); assumption.
+      -- apply TreeBounds in H3.
+         rewrite <- (min_r k k0); assumption.
+      -- apply TreeBounds in H3.
+         rewrite <- (min_r k k0); assumption.
+      -- apply TreeBounds in H3.
+         rewrite <- (min_r k k0); assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         right; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         right; assumption.
+      -- apply TreeBounds in H3.
+         rewrite min_r in H3.
+         ++ rewrite <- H3.
+            apply Nat.min_le_iff.
+            right; assumption.
+         ++ assumption.
+      -- apply TreeBounds in H4; assumption.
+      -- apply TreeBounds in H3.
+         rewrite min_r in H3; auto.
+         apply Nat.min_le_iff.
+         right; rewrite H3 in H1; assumption.
+      -- apply TreeBounds in H4; assumption.
+- destruct (k <=? k2) eqn: H5.
+  + apply leb_complete in H5.
+    destruct (k <=? k1) eqn: H6.
+    * apply leb_complete in H6.
+      destruct (insertHelper k t1); clear IHSearchTree'2 IHSearchTree'3.
+      -- apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+         destruct H3; destruct H4; try split; auto.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite H8 in H5.
+            rewrite (max_r k n0); assumption.
+         ++ rewrite H8 in H5.
+            rewrite (max_r k n); assumption.
+         ++ apply Nat.min_le_iff.
+            left; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.min_le_iff.
+            left; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.min_le_iff.
+            left; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.min_le_iff.
+            left; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+      -- destruct IHSearchTree'1.
+         split; apply srch_node2; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+         destruct H3; destruct H4; try split; auto.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ rewrite <- (max_r k k1); assumption.
+         ++ apply TreeBounds in H7; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite max_r in H8; assumption.
+         ++ apply TreeBounds in H7; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite max_r in H8; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite max_r in H8; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite max_r in H8; assumption.
+         ++ rewrite H9 in H6.
+            rewrite max_r; assumption.
+         ++ rewrite H9 in H6.
+            rewrite max_r; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+    * apply leb_complete_conv in H6; apply Nat.lt_le_incl in H6.
+      destruct (insertHelper k t2); clear IHSearchTree'1 IHSearchTree'3.
+      -- apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+         destruct H3; destruct H4; try split; auto.
+         ++ rewrite H6 in H3.
+            rewrite min_r; assumption.
+         ++ rewrite H6 in H3.
+            rewrite min_r; assumption.
+         ++ rewrite <- (min_r k k1); auto.
+            rewrite <- (max_r k k2); assumption.
+         ++ rewrite <- (min_r k k1); auto.
+            rewrite <- (max_r k k2); assumption.
+         ++ rewrite <- (min_r k k1); auto.
+            rewrite <- (max_r k k2); assumption.
+         ++ rewrite <- (min_r k k1); auto.
+            rewrite <- (max_r k k2); assumption.
+         ++ rewrite H8 in H5.
+            rewrite max_r; assumption.
+         ++ rewrite H8 in H5.
+            rewrite max_r; assumption.
+         ++ apply Nat.min_le_iff.
+            right; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.min_le_iff.
+            right; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.min_le_iff.
+            right; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply Nat.min_le_iff.
+            right; assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+      -- destruct IHSearchTree'2.
+         split; apply srch_node2; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+         destruct H3; destruct H4; try split; auto.
+         ++ rewrite H6 in H3.
+            rewrite min_r; assumption.
+         ++ rewrite H6 in H3.
+            rewrite min_r; assumption.
+         ++ rewrite <- (min_r k k1); assumption.
+         ++ rewrite <- (min_r k k1); assumption.
+         ++ rewrite <- (min_r k k1); assumption.
+         ++ rewrite <- (min_r k k1); assumption.
+         ++ apply Nat.min_le_iff.
+            right; assumption.
+         ++ apply TreeBounds in H7.
+            rewrite <- (min_r k k1); assumption.
+         ++ apply Nat.min_le_iff.
+            right; assumption.
+         ++ apply TreeBounds in H7.
+            rewrite <- (min_r k k1); assumption.
+         ++ apply TreeBounds in H7.
+            rewrite <- (min_r k k1); assumption.
+         ++ apply TreeBounds in H7.
+            rewrite <- (min_r k k1); assumption.
+         ++ rewrite <- (max_r k k2); assumption.
+         ++ rewrite <- (max_r k k2); assumption.
+         ++ rewrite <- (max_r k k2); assumption.
+         ++ rewrite <- (max_r k k2); assumption.
+         ++ rewrite H10 in H5.
+            rewrite max_r; assumption.
+         ++ rewrite H10 in H5.
+            rewrite max_r; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite <- (max_r k k2); assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite <- (max_r k k2); assumption.
+         ++ apply TreeBounds in H8.
+            rewrite <- (max_r k k2); assumption.
+         ++ apply Nat.max_le_iff.
+            right; assumption.
+         ++ apply TreeBounds in H8.
+            rewrite <- (max_r k k2); assumption.
+  + apply leb_complete_conv in H5;  apply Nat.lt_le_incl in H5.
+    destruct (insertHelper k t3); clear IHSearchTree'1 IHSearchTree'2.
+    * apply srch_node3; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+      destruct H3; destruct H4; try split; auto.
+      -- rewrite H5 in H4.
+         rewrite min_r; assumption.
+      -- rewrite H5 in H4.
+         rewrite min_r; assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         right; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         right; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         right; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.max_le_iff.
+         right; assumption.
+    * destruct IHSearchTree'3.
+      split; apply srch_node2; unfold min' in *; unfold max' in *; destruct lower, upper; unfold k_inBounds in *;
+      destruct H3; destruct H4; try split; auto.
+      -- rewrite H5 in H4.
+         rewrite min_r; assumption.
+      -- rewrite H5 in H4.
+         rewrite min_r; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- apply Nat.min_le_iff.
+         right; assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- rewrite <- (min_r k k2); assumption.
+      -- apply TreeBounds in H6.
+         rewrite <- (min_r k k2); assumption.
+      -- apply TreeBounds in H7; assumption.
+      -- apply TreeBounds in H6.
+         rewrite <- (min_r k k2); assumption.
+      -- apply TreeBounds in H6.
+         rewrite <- (min_r k k2); assumption.
+      -- apply TreeBounds in H7; assumption.
+      -- apply TreeBounds in H6.
+         rewrite <- (min_r k k2); assumption.
+Qed.
 
 
 Theorem PreserveSearchTreeInvariant :
