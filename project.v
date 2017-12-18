@@ -1,13 +1,30 @@
+(* This project was made in collaboration between
+   Andreas Østergaard Nielsen (201303609)
+   Marie Louisa Tølbøll Berthelsen (201303610)
 
+   Major theorems can be easily found by searching for the string "Major result"
+   *)
 
 Require Import Arith.
 
+(*
+  _____            __   _           _   _     _
+ |  __ \          / _| (_)         (_) | |   (_)
+ | |  | |   ___  | |_   _   _ __    _  | |_   _    ___    _ __    ___
+ | |  | |  / _ \ |  _| | | | '_ \  | | | __| | |  / _ \  | '_ \  / __|
+ | |__| | |  __/ | |   | | | | | | | | | |_  | | | (_) | | | | | \__ \
+ |_____/   \___| |_|   |_| |_| |_| |_|  \__| |_|  \___/  |_| |_| |___/
+*)
+
+(* The tree type *)
 Inductive tree23 : Type :=
   | empty : tree23
   | node2 : nat -> tree23 -> tree23 -> tree23
   | node3 : nat -> nat -> tree23 -> tree23 -> tree23 -> tree23
 .
 
+
+(* Search function, returns true if the searchkey is in the tree and false otherwise *)
 Fixpoint search23tree (sk:nat) (n:tree23) : bool :=
   match n with
   | empty => false
@@ -27,8 +44,7 @@ Fixpoint search23tree (sk:nat) (n:tree23) : bool :=
     end
   end.
 
-(*Test cases for search *)
-
+(*Unit tests for search23tree *)
 Example searchtest1: search23tree 2 empty = false.
 Proof. reflexivity. Qed.
 
@@ -59,12 +75,14 @@ Proof. reflexivity. Qed.
 
 
 
-(* new search *)
+(* helper inductive type for the insertfunction *)
 Inductive insertResult : Set :=
   | irTree : tree23 -> insertResult
   | irSplit : tree23 -> nat -> tree23 -> insertResult.
 
 
+(* Helper function for insert, that returns insertResult instead of a tree.
+   inserts the key at a leaf and pushes values up to parents if a split occurs *)
 Fixpoint insertHelper (k:nat) (t:tree23) : insertResult :=
 
   match t with
@@ -108,6 +126,7 @@ Fixpoint insertHelper (k:nat) (t:tree23) : insertResult :=
     end
   end.
 
+(* insert function, takes a key and a tree and returns a new true that is the old tree with the new key added at the correct position *)
 Definition insert23tree (k:nat) (t:tree23) : tree23 :=
   match (insertHelper k t) with
   | irTree t' => t'
@@ -115,12 +134,9 @@ Definition insert23tree (k:nat) (t:tree23) : tree23 :=
   end.
 
 
-(* Test cases for search *)
+(* Unit test for insert23tree *)
 
 (* leaf cases *)
-
-
-
 Example insertTest1: insert23tree 2 empty = node2 2 empty empty.
 Proof. reflexivity. Qed.
 
@@ -144,10 +160,10 @@ Example insertTest6: insert23tree 5 (node3 2 4 empty empty empty) =
                                      node2 4 (node2 2 empty empty) (node2 5 empty empty).
 Proof. reflexivity. Qed.
 
+
 (* node cases *)
 
 (* node2 *)
-
 Example insertTest7: insert23tree 4 (node2 5 (node2 3 empty empty) (node2 7 empty empty)) =
                                      node2 5 (node3 3 4 empty empty empty) (node2 7 empty empty).
 Proof. reflexivity. Qed.
@@ -165,7 +181,6 @@ Example insertTest10: insert23tree 6 (node2 5 (node2 3 empty empty) (node3 7 8 e
 Proof. reflexivity. Qed.
 
 (* node3 *)
-
 Example insertTest11: insert23tree 2 (node3 4 8 (node2 3 empty empty) (node2 5 empty empty) (node2 9 empty empty)) =
                                       node3 4 8 (node3 2 3 empty empty empty) (node2 5 empty empty) (node2 9 empty empty).
 Proof. reflexivity. Qed.
@@ -191,6 +206,7 @@ Example insertTest16: insert23tree 10 (node3 4 8 (node2 3 empty empty) (node2 5 
 Proof. reflexivity. Qed.
 
 
+(* inductive predicate that tells if a key is contained within the tree *)
 Inductive keyIn : nat -> tree23 -> Prop :=
   | In2_match : forall k t1 t2, keyIn k (node2 k t1 t2)
   | In2_left : forall k n t1 t2, keyIn k t1 -> keyIn k (node2 n t1 t2)
@@ -202,15 +218,18 @@ Inductive keyIn : nat -> tree23 -> Prop :=
   | In3_middle : forall k k1 k2 t1 t2 t3, keyIn k t2 -> keyIn k (node3 k1 k2 t1 t2 t3)
   | In3_right : forall k k1 k2 t1 t2 t3, keyIn k t3 -> keyIn k (node3 k1 k2 t1 t2 t3).
 
+(* Helper predicate that tells if the tree is balanced, meaning all children of a node have equal height *)
 Inductive Balanced': nat -> tree23 -> Prop :=
   | b_treeEmpty : Balanced' 0 empty
   | b_tree2 : forall k n t1 t2, Balanced' n t1 -> Balanced' n t2 -> Balanced' (S n) (node2 k t1 t2)
   | b_tree3 : forall k1 k2 n t1 t2 t3, Balanced' n t1 -> Balanced' n t2 -> Balanced' n t3 -> Balanced' (S n) (node3 k1 k2 t1 t2 t3).
 
-
+(* Predicate that tells whether a tree is balanced, meaning there exists a height for which the helper predicate is valid *)
 Inductive Balanced : tree23 -> Prop :=
   | bal : forall t n, Balanced' n t -> Balanced t.
 
+
+(* predicate that describes if a value k is contained within optional bounds *)
 Definition k_inBounds (k:nat) (l: option nat) (u: option nat) : Prop :=
   (match l with
    | Some l' => l' <= k
@@ -222,6 +241,7 @@ Definition k_inBounds (k:nat) (l: option nat) (u: option nat) : Prop :=
    | None => True
    end).
 
+(* a predicate that describes if an optional lower bound is smaller than an optional upper bound *)
 Definition correct_Bounds (l u : option nat) : Prop :=
   match l with
   | None => True
@@ -230,6 +250,9 @@ Definition correct_Bounds (l u : option nat) : Prop :=
                | Some u' => l' <= u'
                end
   end.
+
+(* A helper predicate for describing if a tree is a sorted meaning that for a given node its bound should be valid
+   and the children should have bound based on the parent *)
 Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
   | srch_empty : forall o1 o2, correct_Bounds o1 o2 -> SearchTree' o1 o2 empty
   | srch_node2 : forall k t1 t2 lower upper,
@@ -246,12 +269,12 @@ Inductive SearchTree' : option nat -> option nat -> tree23 -> Prop :=
         k_inBounds k2 lower upper ->
         SearchTree' lower upper (node3 k1 k2 t1 t2 t3).
 
+(* A predicate that describes if there exists some bounds such that the helper predicate is valid *)
 Inductive SearchTree : tree23 -> Prop :=
   | srch : forall t lower upper, SearchTree' lower upper t -> SearchTree t.
 
 
-(* new min and max that handle None as no bound *)
-
+(* new definitions for min and max that handle None as no bound *)
 Definition min' (a:nat) (b:option nat) : option nat :=
   match b with
   | None => None
@@ -264,10 +287,16 @@ Definition max' (a:nat) (b:option nat) : option nat :=
   | Some b' => Some (max a b')
   end.
 
-(* proofs *)
+(*
+  _____                            __
+ |  __ \                          / _|
+ | |__) |  _ __    ___     ___   | |_   ___
+ |  ___/  | '__|  / _ \   / _ \  |  _| / __|
+ | |      | |    | (_) | | (_) | | |   \__ \
+ |_|      |_|     \___/   \___/  |_|   |___/
+*)
 
-
-
+(* Helper lemmas that state if a tree is a searchTree then the roots children are also searchtrees *)
 Lemma Search_node2_conj :
   forall n t1 t2, SearchTree (node2 n t1 t2) -> SearchTree t1 /\ SearchTree t2.
 Proof.
@@ -297,6 +326,8 @@ split.
     apply H10.
 Qed.
 
+
+(* Helper lemma stating n<n is a contradiction *)
 Lemma n_lt_n : forall n, n<n -> False.
 Proof.
   intros.
@@ -307,7 +338,7 @@ Proof.
     apply H.
 Qed.
 
-
+(* Lemma that loosens the lower bound of a tree to a smaller value *)
 Lemma loosen_lower_bound : forall n1 n2 u t, SearchTree' (Some n2) u t -> n1 <= n2 -> SearchTree' (Some n1) u t.
 Proof.
   intros.
@@ -364,6 +395,7 @@ Proof.
         -- apply H6.
 Qed.
 
+(* Lemma that loosens the upper bound of a tree to a larger value *)
 Lemma loosen_upper_bound : forall n1 n2 l t, SearchTree' l (Some n2) t -> n2 <= n1 -> SearchTree' l (Some n1) t.
 Proof.
   intros.
@@ -509,6 +541,9 @@ Proof.
   - apply leftTreeSearch_aux with (t:=t) (lower:= (Some n1)); assumption.
 Qed.
 
+
+(* Major result
+   If the tree is a sorted SearchTree then the keyIn predicate and searchtree funnction are equivelant *)
 Theorem SearchCorrectness :
   forall t k, SearchTree t -> (keyIn k t <-> search23tree k t = true).
 Proof.
@@ -694,6 +729,7 @@ Hint Resolve Nat.le_min_r Nat.le_min_l.
 Hint Resolve Nat.le_max_r Nat.le_max_l.
 Hint Resolve Nat.max_lub Nat.min_glb.
 
+(* Helper lemma that states if a tree is bounded by values l and u then l <= u *)
 Lemma TreeBounds : forall l u t, SearchTree' (Some l) (Some u) t -> l <= u.
 Proof.
   intros.
@@ -711,6 +747,9 @@ Proof.
     apply H2.
 Qed.
 
+(* Helper lemma that states if t is a searchTree bounded by l and u
+   then inserting k into the tree either results in a single tree with bounds that might change to k
+   or the tree is split into 2 tree with bounds lower and upper bounds that might change to k, and the split value is bound between the 2 trees *)
 Lemma PreserveSearchInsertHelper : forall lower upper k t,
   SearchTree' lower upper t ->
   match insertHelper k t with
@@ -1036,7 +1075,8 @@ induction H; intros; simpl.
          rewrite <- (min_r k k2); assumption.
 Qed.
 
-
+(* Major result
+   Theorem that states if t is a sorted searchtree then inserting a value k into it does not change this invariant *)
 Theorem PreserveSearchTreeInvariant :
   forall t k, SearchTree t -> SearchTree (insert23tree k t).
 Proof.
@@ -1063,7 +1103,8 @@ Proof.
         apply H0.
 Qed.
 
-
+(* Helper lemma that states if t is balanced with height n then inserting k into the tree either results in
+  a new tree with height n or the tree split into 2 trees with height n each*)
 Lemma PreserveBalanceInsertHelper : forall n k t,
   Balanced' n t ->
   match insertHelper k t with
@@ -1095,8 +1136,9 @@ Proof.
       -- apply b_tree3; assumption.
       -- split; apply b_tree2; destruct IHBalanced'3; assumption.
 Qed.
-  
 
+(* Major result
+   Theorem that states if a tree t is balanced inserting a value k into it does not change this invariant *)
 Theorem PreserveBalancedInvariant :
   forall t k, Balanced t -> Balanced (insert23tree k t).
 Proof.
@@ -1114,6 +1156,9 @@ Proof.
     + apply H0.
 Qed.
 
+(* Helper lemma that states that inserting k into t means
+   Either we get a new tree with with k in it
+   or the tree is split into 2 trees where the key is in one of them or the key is the split value *)
 Lemma keyIn_insert : forall t k, match insertHelper k t with
   | irTree t' => keyIn k t'
   | irSplit t1 m t2 => match (k ?= m) with
@@ -1184,6 +1229,8 @@ Proof.
            ++ apply In2_right; assumption.
 Qed.
 
+(* Major result
+   Theorem that states if we insert k into t then k is in t *)
 Theorem InsertCorrectness1 :
   forall t k, keyIn k (insert23tree k t).
 Proof.
@@ -1201,6 +1248,8 @@ Proof.
       apply H.
 Qed.
 
+(* Major result
+   Theorem that states if a k' is in a tree t then inserting some other value does not remove k' from the tree *)
 Theorem insertCorrectness2 :
   forall t k k', keyIn k' t -> keyIn k' (insert23tree k t).
 Proof.
@@ -1276,6 +1325,8 @@ Proof.
         -- apply In2_right; apply In2_right; assumption.
 Qed.
 
+(* Major result
+   Theorem that states if k' is in a tree in which k was inserting then either k'=k or k' was in the tree before k was inserted *)
 Theorem insertCorrectness3 :
   forall t k k', keyIn k' (insert23tree k t) -> k' = k \/ keyIn k' t.
 Proof.
